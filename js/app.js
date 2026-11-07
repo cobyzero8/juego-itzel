@@ -8,15 +8,16 @@ let puntosXP = 0;
 function seleccionarAvatar(emoji, elemento) {
     avatarSeleccionado = emoji;
     const cards = document.querySelectorAll('.avatar-card');
-    cards.forEach(c => c.classList.remove('border-pink-500', 'bg-pink-900/30'));
-    elemento.classList.add('border-pink-500', 'bg-pink-900/30');
+    cards.forEach(c => c.classList.remove('border-pink-500', 'bg-pink-900/40'));
+    elemento.classList.add('border-pink-500', 'bg-pink-900/40');
 }
 
 // Confirmar e ir a la Montaña
 function confirmarAvatar() {
     document.getElementById('header-avatar').textContent = avatarSeleccionado;
-    document.getElementById('pantalla-avatar').classList.add('hidden');
-    document.getElementById('pantalla-mapa').classList.remove('hidden');
+    guardarEstadoJuego();
+
+    mostrarPantalla('pantalla-mapa');
     document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
 }
 
@@ -24,18 +25,14 @@ function confirmarAvatar() {
 function iniciarNivel(numeroNivel) {
     if (numeroNivel === 1 && typeof nivel1_Grado1 !== 'undefined') {
         preguntasDelNivel = [...nivel1_Grado1.matematicas, ...nivel1_Grado1.lectura];
-        indicePregunta = 0;
-        aciertosTotales = 0;
 
-        // Ocultar mapa y mostrar pantalla de animación
-        document.getElementById('pantalla-mapa').classList.add('hidden');
+        // Mostrar pantalla de animación
         document.getElementById('anim-avatar-emoji').textContent = avatarSeleccionado;
-        document.getElementById('pantalla-animacion').classList.remove('hidden');
+        mostrarPantalla('pantalla-animacion');
 
-        // Esperar 2 segundos de animación antes de iniciar
+        // Transición animada de 1.8 segundos al reto
         setTimeout(() => {
-            document.getElementById('pantalla-animacion').classList.add('hidden');
-            document.getElementById('pantalla-juego').classList.remove('hidden');
+            mostrarPantalla('pantalla-juego');
             document.getElementById('nivel-titulo').textContent = "⛰️ Nivel 1: 1.º Primaria";
             cargarPreguntaActual();
         }, 1800);
@@ -47,8 +44,9 @@ function cargarPreguntaActual() {
 
     if (indicePregunta >= preguntasDelNivel.length) {
         alert(`🏆 ¡Felicidades Itzel! Completaste el bloque con ${aciertosTotales} aciertos de 40.`);
-        document.getElementById('pantalla-juego').classList.add('hidden');
-        document.getElementById('pantalla-mapa').classList.remove('hidden');
+        indicePregunta = 0;
+        guardarEstadoJuego();
+        mostrarPantalla('pantalla-mapa');
         return;
     }
 
@@ -97,8 +95,55 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
         feedback.className = "text-center font-bold text-base text-rose-400";
     }
 
+    // Guardar avance tras cada respuesta
+    indicePregunta++;
+    guardarEstadoJuego();
+
     setTimeout(() => {
-        indicePregunta++;
         cargarPreguntaActual();
     }, 1500);
 }
+
+// Alternar pantallas de forma segura
+function mostrarPantalla(idPantalla) {
+    const pantallas = ['pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego'];
+    pantallas.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === idPantalla) ? 'block' : 'none';
+    });
+}
+
+// Sistema de Guardado Automático en el Celular
+function guardarEstadoJuego() {
+    const datosGuardados = {
+        avatar: avatarSeleccionado,
+        xp: puntosXP,
+        indicePregunta: indicePregunta,
+        aciertosTotales: aciertosTotales
+    };
+    localStorage.setItem('itzel_juego_datos', JSON.stringify(datosGuardados));
+}
+
+function cargarEstadoJuego() {
+    const datos = localStorage.getItem('itzel_juego_datos');
+    if (datos) {
+        const estado = JSON.parse(datos);
+        avatarSeleccionado = estado.avatar || '🦸‍♀️';
+        puntosXP = estado.xp || 0;
+        indicePregunta = estado.indicePregunta || 0;
+        aciertosTotales = estado.aciertosTotales || 0;
+
+        document.getElementById('header-avatar').textContent = avatarSeleccionado;
+        document.getElementById('score-display').textContent = `${puntosXP} XP`;
+
+        // Si ya tenía un avatar guardado, ir directamente al mapa
+        mostrarPantalla('pantalla-mapa');
+        document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
+    } else {
+        mostrarPantalla('pantalla-avatar');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarEstadoJuego();
+});
