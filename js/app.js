@@ -4,15 +4,29 @@ let indicePregunta = 0;
 let aciertosTotales = 0;
 let puntosXP = 0;
 
-// Seleccionar Avatar en pantalla 1
+// 1. Alternar pantallas sin errores
+function mostrarPantalla(idPantalla) {
+    const listaPantallas = ['pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego'];
+    listaPantallas.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.style.display = (id === idPantalla) ? 'block' : 'none';
+        }
+    });
+}
+
+// 2. Selección de Avatar
 function seleccionarAvatar(emoji, elemento) {
     avatarSeleccionado = emoji;
     const cards = document.querySelectorAll('.avatar-card');
-    cards.forEach(c => c.classList.remove('border-pink-500', 'bg-pink-900/40'));
-    elemento.classList.add('border-pink-500', 'bg-pink-900/40');
+    cards.forEach(c => {
+        c.style.borderColor = '#334155';
+        c.style.backgroundColor = '#1e293b';
+    });
+    elemento.style.borderColor = '#ec4899';
+    elemento.style.backgroundColor = 'rgba(236, 72, 153, 0.2)';
 }
 
-// Confirmar e ir a la Montaña
 function confirmarAvatar() {
     document.getElementById('header-avatar').textContent = avatarSeleccionado;
     guardarEstadoJuego();
@@ -21,16 +35,22 @@ function confirmarAvatar() {
     document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
 }
 
-// Iniciar Nivel con animación intermedia
+// 3. Iniciar Nivel 1 (1.º Primaria)
 function iniciarNivel(numeroNivel) {
-    if (numeroNivel === 1 && typeof nivel1_Grado1 !== 'undefined') {
-        preguntasDelNivel = [...nivel1_Grado1.matematicas, ...nivel1_Grado1.lectura];
+    if (numeroNivel === 1) {
+        // Verificar que el objeto nivel1_Grado1 existe en datos/grado1.js
+        if (typeof nivel1_Grado1 !== 'undefined') {
+            preguntasDelNivel = [...nivel1_Grado1.matematicas, ...nivel1_Grado1.lectura];
+        } else {
+            alert("Cargando preguntas de 1.º de Primaria...");
+            return;
+        }
 
-        // Mostrar pantalla de animación
+        // Mostrar animación
         document.getElementById('anim-avatar-emoji').textContent = avatarSeleccionado;
         mostrarPantalla('pantalla-animacion');
 
-        // Transición animada de 1.8 segundos al reto
+        // Pasar al juego tras 1.8 segundos
         setTimeout(() => {
             mostrarPantalla('pantalla-juego');
             document.getElementById('nivel-titulo').textContent = "⛰️ Nivel 1: 1.º Primaria";
@@ -39,11 +59,12 @@ function iniciarNivel(numeroNivel) {
     }
 }
 
+// 4. Mostrar Pregunta
 function cargarPreguntaActual() {
     document.getElementById('feedback-msg').textContent = "";
 
     if (indicePregunta >= preguntasDelNivel.length) {
-        alert(`🏆 ¡Felicidades Itzel! Completaste el bloque con ${aciertosTotales} aciertos de 40.`);
+        alert(`🏆 ¡Felicidades Itzel! Completaste el Nivel 1 con ${aciertosTotales} aciertos de 40.`);
         indicePregunta = 0;
         guardarEstadoJuego();
         mostrarPantalla('pantalla-mapa');
@@ -69,12 +90,13 @@ function cargarPreguntaActual() {
     q.opciones.forEach((opcion, idx) => {
         const btn = document.createElement('button');
         btn.textContent = opcion;
-        btn.className = "btn-opcion w-full bg-slate-800/90 hover:bg-slate-700 border border-indigo-500/40 p-3.5 rounded-xl font-semibold transition text-slate-100 text-left px-4 text-sm";
+        btn.className = "w-full bg-slate-800/90 hover:bg-slate-700 border border-indigo-500/40 p-3.5 rounded-xl font-semibold transition text-slate-100 text-left px-4 text-sm";
         btn.onclick = () => evaluarRespuesta(idx, q.correcta, btn);
         contenedor.appendChild(btn);
     });
 }
 
+// 5. Evaluar Respuesta
 function evaluarRespuesta(seleccion, correcta, btnElem) {
     const todosBotones = document.querySelectorAll('#opciones-container button');
     todosBotones.forEach(b => b.disabled = true);
@@ -95,7 +117,6 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
         feedback.className = "text-center font-bold text-base text-rose-400";
     }
 
-    // Guardar avance tras cada respuesta
     indicePregunta++;
     guardarEstadoJuego();
 
@@ -104,16 +125,7 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
     }, 1500);
 }
 
-// Alternar pantallas de forma segura
-function mostrarPantalla(idPantalla) {
-    const pantallas = ['pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego'];
-    pantallas.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = (id === idPantalla) ? 'block' : 'none';
-    });
-}
-
-// Sistema de Guardado Automático en el Celular
+// 6. Persistencia (Guardado en Memoria del Celular)
 function guardarEstadoJuego() {
     const datosGuardados = {
         avatar: avatarSeleccionado,
@@ -136,7 +148,6 @@ function cargarEstadoJuego() {
         document.getElementById('header-avatar').textContent = avatarSeleccionado;
         document.getElementById('score-display').textContent = `${puntosXP} XP`;
 
-        // Si ya tenía un avatar guardado, ir directamente al mapa
         mostrarPantalla('pantalla-mapa');
         document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
     } else {
