@@ -1,125 +1,128 @@
 /* ============================================================
-   MOTOR PRINCIPAL DEL JUEGO (js/app.js)
+   MOTOR PRINCIPAL DEL JUEGO CON MAPA Y SELECCIÓN DE AVATAR
    ============================================================ */
 
+let avatarSeleccionado = '🦸‍♀️';
+let preguntasDelNivel = [];
 let indicePregunta = 0;
+let aciertosTotales = 0;
 let puntosXP = 0;
-let nivelActual = 1;
 
-// Cargar progreso guardado en el celular si existe
-function cargarProgreso() {
-    const progresoGuardado = localStorage.getItem('itzel_game_progress');
-    if (progresoGuardado) {
-        const datos = JSON.parse(progresoGuardado);
-        puntosXP = datos.puntosXP || 0;
-        nivelActual = datos.nivelActual || 1;
-    }
-    actualizarInterfazHeader();
+// 1. Manejo del Avatar
+function seleccionarAvatar(emoji, nombre) {
+    avatarSeleccionado = emoji;
+    const cards = document.querySelectorAll('.avatar-card');
+    cards.forEach(c => c.classList.remove('seleccionado'));
+    event.currentTarget.classList.add('seleccionado');
 }
 
-// Guardar progreso en el almacenamiento local del celular
-function guardarProgreso() {
-    const datos = {
-        puntosXP: puntosXP,
-        nivelActual: nivelActual
-    };
-    localStorage.setItem('itzel_game_progress', JSON.stringify(datos));
-}
-
-// Actualizar textos y barra de experiencia
-function actualizarInterfazHeader() {
-    const elScore = document.getElementById('score-display');
-    const elNivel = document.getElementById('nivel-titulo');
-    const elBarra = document.getElementById('barra-exp');
-
-    if (elScore) elScore.textContent = `${puntosXP} XP`;
-    if (elNivel) elNivel.textContent = `🌟 Nivel ${nivelActual}: Exploradora`;
+function confirmarAvatar() {
+    document.getElementById('header-avatar').textContent = avatarSeleccionado;
+    localStorage.setItem('itzel_avatar', avatarSeleccionado);
     
-    if (elBarra) {
-        let porcentaje = (puntosXP % 100);
-        elBarra.style.width = `${porcentaje}%`;
-    }
+    // Cambiar a la pantalla del Mapa
+    document.getElementById('pantalla-avatar').classList.add('oculto');
+    document.getElementById('pantalla-mapa').classList.remove('oculto');
+    document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
 }
 
-// Renderizar la pregunta actual en pantalla
-function mostrarPregunta() {
-    const feedback = document.getElementById('feedback-msg');
-    if (feedback) feedback.textContent = "";
-
-    // Filtrar preguntas por el nivel actual de la base de datos de primaria
-    const preguntasDisponibles = preguntasPrimaria.filter(p => p.nivel === nivelActual);
-    
-    // Si completó las preguntas de ese nivel, sube de nivel automátiamente
-    if (indicePregunta >= preguntasDisponibles.length) {
+// 2. Iniciar Nivel en el Mapa
+function iniciarNivel(numeroNivel) {
+    if (numeroNivel === 1) {
+        // Combinar las 20 de matemáticas y 20 de lectura del Grado 1
+        preguntasDelNivel = [...nivel1_Grado1.matematicas, ...nivel1_Grado1.lectura];
         indicePregunta = 0;
-        nivelActual++;
-        guardarProgreso();
-        alert(`¡Felicidades Itzel! 🎉 Subiste al Nivel ${nivelActual}`);
-        mostrarPregunta();
+        aciertosTotales = 0;
+
+        document.getElementById('pantalla-mapa').classList.add('oculto');
+        document.getElementById('pantalla-juego').classList.remove('oculto');
+        
+        cargarPreguntaActual();
+    }
+}
+
+// 3. Renderizar la pregunta en pantalla
+function cargarPreguntaActual() {
+    const feedback = document.getElementById('feedback-msg');
+    feedback.textContent = "";
+
+    if (indicePregunta >= preguntasDelNivel.length) {
+        finalizarNivel();
         return;
     }
 
-    const q = preguntasDisponibles[indicePregunta];
+    const q = preguntasDelNivel[indicePregunta];
+    const esMatematica = indicePregunta < 20;
 
-    document.getElementById('categoria-tag').textContent = q.categoria;
-    document.getElementById('categoria-tag').className = `${q.tipoColor} text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block`;
+    const catTag = document.getElementById('categoria-tag');
+    catTag.textContent = esMatematica ? "Matemáticas 🧮" : "Comprensión Lectora 📖";
+    catTag.className = esMatematica ? "bg-emerald-600 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider" : "bg-pink-600 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider";
+
+    document.getElementById('contador-pregunta').textContent = `Pregunta ${indicePregunta + 1} de 40`;
     document.getElementById('pregunta-texto').textContent = q.pregunta;
 
-    const contenedorOpciones = document.getElementById('opciones-container');
-    contenedorOpciones.innerHTML = "";
+    // Actualizar barra de progreso del bloque
+    const barra = document.getElementById('barra-exp');
+    barra.style.width = `${((indicePregunta) / 40) * 100}%`;
+
+    const contenedor = document.getElementById('opciones-container');
+    contenedor.innerHTML = "";
 
     q.opciones.forEach((opcion, idx) => {
         const btn = document.createElement('button');
         btn.textContent = opcion;
-        btn.className = "btn-opcion w-full bg-slate-800/90 hover:bg-slate-700 border border-indigo-500/40 p-3.5 rounded-xl font-semibold transition text-slate-100 text-left px-4 text-sm md:text-base";
+        btn.className = "btn-opcion w-full bg-slate-800/90 hover:bg-slate-700 border border-indigo-500/40 p-3.5 rounded-xl font-semibold transition text-slate-100 text-left px-4 text-sm";
         btn.onclick = () => evaluarRespuesta(idx, q.correcta, btn);
-        contenedorOpciones.appendChild(btn);
+        contenedor.appendChild(btn);
     });
-
-    actualizarInterfazHeader();
 }
 
-// Evaluar la selección de la niña
-function evaluarRespuesta(seleccion, correcta, elementoBtn) {
-    const tarjeta = document.getElementById('game-card');
-    const feedback = document.getElementById('feedback-msg');
+// 4. Evaluar la respuesta elegida
+function evaluarRespuesta(seleccion, correcta, btnElem) {
     const todosBotones = document.querySelectorAll('#opciones-container button');
-
-    // Deshabilitar botones para evitar doble clic
     todosBotones.forEach(b => b.disabled = true);
 
+    const feedback = document.getElementById('feedback-msg');
+
     if (seleccion === correcta) {
-        elementoBtn.className = "w-full bg-emerald-600 border border-emerald-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm md:text-base";
-        tarjeta.classList.add('anim-acierto');
-        feedback.textContent = "🎉 ¡Excelente trabajo, Itzel!";
+        btnElem.className = "w-full bg-emerald-600 border border-emerald-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
+        feedback.textContent = "🎉 ¡Excelente acierto, Itzel!";
         feedback.className = "text-center font-bold text-base text-emerald-400";
-        
+        aciertosTotales++;
         puntosXP += 25;
-        guardarProgreso();
-
-        setTimeout(() => {
-            tarjeta.classList.remove('anim-acierto');
-            indicePregunta++;
-            mostrarPregunta();
-        }, 1400);
-
+        document.getElementById('score-display').textContent = `${puntosXP} XP`;
     } else {
-        elementoBtn.className = "w-full bg-rose-600 border border-rose-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm md:text-base";
-        todosBotones[correcta].className = "w-full bg-emerald-700 border border-emerald-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm md:text-base";
-        tarjeta.classList.add('anim-error');
-        feedback.textContent = "❌ ¡Casi! Revisa la respuesta correcta.";
+        btnElem.className = "w-full bg-rose-600 border border-rose-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
+        todosBotones[correcta].className = "w-full bg-emerald-700 border border-emerald-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
+        feedback.textContent = "❌ ¡Casi lo logras! Aprendamos de esta respuesta.";
         feedback.className = "text-center font-bold text-base text-rose-400";
+    }
 
-        setTimeout(() => {
-            tarjeta.classList.remove('anim-error');
-            indicePregunta++;
-            mostrarPregunta();
-        }, 2000);
+    setTimeout(() => {
+        indicePregunta++;
+        cargarPreguntaActual();
+    }, 1500);
+}
+
+// 5. Pantalla de Resultados al terminar las 40 preguntas
+function finalizarNivel() {
+    const aprobado = aciertosTotales >= nivel1_Grado1.minimoAciertos;
+    
+    document.getElementById('pantalla-juego').classList.add('oculto');
+    document.getElementById('pantalla-mapa').classList.remove('oculto');
+
+    if (aprobado) {
+        alert(`🏆 ¡FELICIDADES ITZEL! 🏆\n\nLograste ${aciertosTotales} aciertos de 40.\n¡Has completado el Nivel 1 (1.º de Primaria) y desbloqueaste el Nivel 2!`);
+    } else {
+        alert(`¡Buen intento Itzel! 🌟\n\nLograste ${aciertosTotales} aciertos de 40. Necesitas 30 aciertos para pasar de nivel.\n¡Inténtalo de nuevo, tú puedes!`);
     }
 }
 
-// Inicializar al cargar el documento
+// Cargar Avatar guardado al iniciar si existe
 document.addEventListener('DOMContentLoaded', () => {
-    cargarProgreso();
-    mostrarPregunta();
+    const avatarGuardado = localStorage.getItem('itzel_avatar');
+    if (avatarGuardado) {
+        avatarSeleccionado = avatarGuardado;
+        document.getElementById('header-avatar').textContent = avatarSeleccionado;
+    }
 });
