@@ -1,1 +1,64 @@
+/* ============================================================
+   ESTILOS VISUALES - EL MUNDO MÁGICO DE ITZEL
+   Diseñado para teléfonos celulares y pantallas táctiles
+   ============================================================ */
 
+/* Transiciones globales fluidas */
+* {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* Efectos de elevación y botón al presionar */
+.btn-opcion {
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 4px 0 #1e1b4b;
+}
+
+.btn-opcion:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #1e1b4b;
+}
+
+/* Brillo Neón para el Nivel y Puntos */
+.neon-border {
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+}
+
+.neon-text-gold {
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+/* Animación cuando acierta la respuesta */
+@keyframes acierto-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+.anim-acierto {
+    animation: acierto-pulse 0.4s ease-in-out;
+}
+
+/* Animación si falla */
+@keyframes error-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.anim-error {
+    animation: error-shake 0.4s ease-in-out;
+}
+
+/* Scrollbar estilizado para pantallas largas */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+    background: #3b82f6;
+    border-radius: 10px;
+}
