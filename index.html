@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mundo Mágico de Itzel - Aprendizaje por Niveles</title>
+    <title>Mundo Mágico de Itzel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/estilos.css">
 </head>
@@ -16,7 +16,7 @@
             <div>
                 <h2 class="text-[10px] text-purple-300 font-bold uppercase tracking-wider">Jugadora Estrella</h2>
                 <h1 class="text-base font-extrabold text-pink-400">👑 Itzel</h1>
-                <p id="nivel-titulo" class="text-xs font-bold text-amber-400">🌟 Cargando Mapa...</p>
+                <p id="nivel-titulo" class="text-xs font-bold text-amber-400">🌟 Bienvenido</p>
             </div>
         </div>
         <div class="text-right">
@@ -25,26 +25,26 @@
         </div>
     </header>
 
-    <!-- PANTALLA 1: SELECCIÓN DE AVATAR (Inicial) -->
+    <!-- PASO 1: SELECCIÓN DE AVATAR -->
     <section id="pantalla-avatar" class="max-w-md mx-auto w-full my-auto space-y-6 text-center">
         <div class="bg-slate-900/90 border-2 border-indigo-600/50 rounded-3xl p-6 shadow-2xl space-y-4">
             <h2 class="text-xl font-extrabold text-pink-400">¡Hola Itzel! 👋</h2>
-            <p class="text-sm text-slate-200">Elige tu Avatar para empezar la aventura pedagógica:</p>
+            <p class="text-sm text-slate-200">Elige tu Avatar para empezar la aventura:</p>
 
             <div class="grid grid-cols-2 gap-4 pt-2">
-                <div onclick="seleccionarAvatar('🦸‍♀️', 'Exploradora Valiente')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                <div onclick="seleccionarAvatar('🦸‍♀️', this)" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
                     <div class="text-4xl mb-1">🦸‍♀️</div>
                     <div class="text-xs font-bold text-pink-300">Exploradora</div>
                 </div>
-                <div onclick="seleccionarAvatar('🧙‍♀️', 'Maga de Números')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                <div onclick="seleccionarAvatar('🧙‍♀️', this)" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
                     <div class="text-4xl mb-1">🧙‍♀️</div>
                     <div class="text-xs font-bold text-purple-300">Maga</div>
                 </div>
-                <div onclick="seleccionarAvatar('👩‍🚀', 'Astronauta Sabia')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                <div onclick="seleccionarAvatar('👩‍🚀', this)" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
                     <div class="text-4xl mb-1">👩‍🚀</div>
                     <div class="text-xs font-bold text-blue-300">Astronauta</div>
                 </div>
-                <div onclick="seleccionarAvatar('🎨', 'Artista Creativa')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                <div onclick="seleccionarAvatar('🎨', this)" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
                     <div class="text-4xl mb-1">🎨</div>
                     <div class="text-xs font-bold text-emerald-300">Artista</div>
                 </div>
@@ -56,16 +56,15 @@
         </div>
     </section>
 
-    <!-- PANTALLA 2: MAPA DE NIVELES (Montaña del Aprendizaje) -->
-    <section id="pantalla-mapa" class="max-w-md mx-auto w-full my-auto space-y-6 oculto">
+    <!-- PASO 2: MAPA DE NIVELES (Montaña del Aprendizaje) -->
+    <section id="pantalla-mapa" class="max-w-md mx-auto w-full my-auto space-y-6 hidden">
         <div class="bg-slate-900/90 border-2 border-indigo-600/50 rounded-3xl p-6 shadow-2xl text-center space-y-4">
             <h2 class="text-lg font-bold text-purple-300 uppercase tracking-wider">⛰️ Montaña del Aprendizaje</h2>
             <p class="text-xs text-slate-300">Completa cada nivel para desbloquear los grados superiores:</p>
 
-            <!-- Camino de Nodos de Niveles -->
             <div class="space-y-4 py-4">
-                <!-- Nivel 1 (Activo) -->
-                <div onclick="iniciarNivel(1)" class="nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 to-purple-600 p-4 rounded-2xl border-2 border-pink-400 flex justify-between items-center shadow-lg">
+                <!-- Nivel 1 Activo -->
+                <div onclick="iniciarNivel(1)" class="nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 to-purple-600 p-4 rounded-2xl border-2 border-pink-400 flex justify-between items-center shadow-lg transform active:scale-95 transition">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">⭐</span>
                         <div class="text-left">
@@ -76,8 +75,8 @@
                     <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-bold">¡JUGAR!</span>
                 </div>
 
-                <!-- Nivel 2 (Bloqueado) -->
-                <div class="opacity-60 bg-slate-800 p-4 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed">
+                <!-- Bloqueados -->
+                <div class="opacity-50 bg-slate-800 p-4 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">🔒</span>
                         <div class="text-left">
@@ -86,23 +85,21 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Nivel 3 (Bloqueado) -->
-                <div class="opacity-60 bg-slate-800 p-4 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl">🔒</span>
-                        <div class="text-left">
-                            <h3 class="font-extrabold text-sm text-slate-400">Nivel 3: 3.º de Primaria</h3>
-                            <p class="text-[10px] text-slate-500">Bloqueado (Requiere Nivel 2)</p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
 
-    <!-- PANTALLA 3: JUEGO / RETO EN CURSO -->
-    <section id="pantalla-juego" class="max-w-md mx-auto w-full my-auto space-y-4 oculto">
+    <!-- PASO 3: ANIMACIÓN DE TRANSICIÓN AL NIVEL -->
+    <section id="pantalla-animacion" class="max-w-md mx-auto w-full my-auto text-center space-y-4 hidden">
+        <div class="bg-slate-900/90 border-2 border-pink-500 rounded-3xl p-8 shadow-2xl animate-bounce">
+            <div id="anim-avatar-emoji" class="text-6xl mb-2">🦸‍♀️</div>
+            <h2 class="text-2xl font-extrabold text-pink-400">¡Cargando Nivel 1!</h2>
+            <p class="text-sm text-purple-300">Entrando a la Montaña de 1.º de Primaria...</p>
+        </div>
+    </section>
+
+    <!-- PASO 4: PANTALLA DE JUEGO / RETO -->
+    <section id="pantalla-juego" class="max-w-md mx-auto w-full my-auto space-y-4 hidden">
         <div class="w-full bg-slate-950 rounded-full h-3 border border-indigo-800/80 p-0.5 shadow-inner">
             <div id="barra-exp" class="bg-gradient-to-r from-amber-400 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
@@ -127,7 +124,7 @@
         Mundo Mágico de Itzel • Aprendizaje Móvil 🚀
     </footer>
 
-    <!-- Carga de Archivos de Datos y Motor JavaScript -->
+    <!-- Carga ordenada de Scripts -->
     <script src="datos/grado1.js"></script>
     <script src="js/app.js"></script>
 </body>
