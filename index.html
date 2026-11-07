@@ -3,68 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Mundo Mágico de Itzel - Juego Educativo</title>
-    <!-- Tailwind CSS desde CDN para estilos modernos -->
+    <title>Mundo Mágico de Itzel - Aprendizaje por Niveles</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Hoja de estilos personalizados -->
     <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body class="bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 text-white min-h-screen flex flex-col justify-between p-4 font-sans select-none">
 
-    <!-- Cabecera del Juego: Información de Itzel -->
-    <header class="bg-slate-900/80 backdrop-blur border border-purple-500/30 rounded-2xl p-4 shadow-2xl flex justify-between items-center max-w-md mx-auto w-full neon-border">
-        <div>
-            <h2 class="text-xs text-purple-300 font-semibold uppercase tracking-wider">Jugadora Estrella</h2>
-            <h1 class="text-lg font-extrabold text-pink-400">👑 Itzel</h1>
-            <p id="nivel-titulo" class="text-xs font-bold text-amber-400 neon-text-gold mt-0.5">🌟 Nivel 1: Cargando...</p>
+    <!-- Header Principal -->
+    <header class="bg-slate-900/90 border border-purple-500/30 rounded-2xl p-4 shadow-2xl flex justify-between items-center max-w-md mx-auto w-full neon-border">
+        <div class="flex items-center gap-3">
+            <div id="header-avatar" class="text-3xl bg-purple-900/60 p-2 rounded-xl border border-pink-500/40">👧</div>
+            <div>
+                <h2 class="text-[10px] text-purple-300 font-bold uppercase tracking-wider">Jugadora Estrella</h2>
+                <h1 class="text-base font-extrabold text-pink-400">👑 Itzel</h1>
+                <p id="nivel-titulo" class="text-xs font-bold text-amber-400">🌟 Cargando Mapa...</p>
+            </div>
         </div>
         <div class="text-right">
-            <span class="text-xs text-indigo-300">Puntaje Total</span>
-            <div id="score-display" class="text-xl font-extrabold text-emerald-400">0 XP</div>
+            <span class="text-[10px] text-indigo-300 font-bold uppercase">Puntaje XP</span>
+            <div id="score-display" class="text-lg font-extrabold text-emerald-400">0 XP</div>
         </div>
     </header>
 
-    <!-- Contenedor Principal de Preguntas -->
-    <main class="max-w-md mx-auto w-full my-auto space-y-4">
-        
-        <!-- Barra de Progreso del Nivel -->
+    <!-- PANTALLA 1: SELECCIÓN DE AVATAR (Inicial) -->
+    <section id="pantalla-avatar" class="max-w-md mx-auto w-full my-auto space-y-6 text-center">
+        <div class="bg-slate-900/90 border-2 border-indigo-600/50 rounded-3xl p-6 shadow-2xl space-y-4">
+            <h2 class="text-xl font-extrabold text-pink-400">¡Hola Itzel! 👋</h2>
+            <p class="text-sm text-slate-200">Elige tu Avatar para empezar la aventura pedagógica:</p>
+
+            <div class="grid grid-cols-2 gap-4 pt-2">
+                <div onclick="seleccionarAvatar('🦸‍♀️', 'Exploradora Valiente')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                    <div class="text-4xl mb-1">🦸‍♀️</div>
+                    <div class="text-xs font-bold text-pink-300">Exploradora</div>
+                </div>
+                <div onclick="seleccionarAvatar('🧙‍♀️', 'Maga de Números')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                    <div class="text-4xl mb-1">🧙‍♀️</div>
+                    <div class="text-xs font-bold text-purple-300">Maga</div>
+                </div>
+                <div onclick="seleccionarAvatar('👩‍🚀', 'Astronauta Sabia')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                    <div class="text-4xl mb-1">👩‍🚀</div>
+                    <div class="text-xs font-bold text-blue-300">Astronauta</div>
+                </div>
+                <div onclick="seleccionarAvatar('🎨', 'Artista Creativa')" class="avatar-card bg-slate-800 border-2 border-slate-700 p-4 rounded-2xl">
+                    <div class="text-4xl mb-1">🎨</div>
+                    <div class="text-xs font-bold text-emerald-300">Artista</div>
+                </div>
+            </div>
+
+            <button onclick="confirmarAvatar()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 font-bold py-3 rounded-xl transition shadow-lg mt-4">
+                ¡Ir al Mapa de Niveles! 🚀
+            </button>
+        </div>
+    </section>
+
+    <!-- PANTALLA 2: MAPA DE NIVELES (Montaña del Aprendizaje) -->
+    <section id="pantalla-mapa" class="max-w-md mx-auto w-full my-auto space-y-6 oculto">
+        <div class="bg-slate-900/90 border-2 border-indigo-600/50 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <h2 class="text-lg font-bold text-purple-300 uppercase tracking-wider">⛰️ Montaña del Aprendizaje</h2>
+            <p class="text-xs text-slate-300">Completa cada nivel para desbloquear los grados superiores:</p>
+
+            <!-- Camino de Nodos de Niveles -->
+            <div class="space-y-4 py-4">
+                <!-- Nivel 1 (Activo) -->
+                <div onclick="iniciarNivel(1)" class="nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 to-purple-600 p-4 rounded-2xl border-2 border-pink-400 flex justify-between items-center shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">⭐</span>
+                        <div class="text-left">
+                            <h3 class="font-extrabold text-sm text-white">Nivel 1: 1.º de Primaria</h3>
+                            <p class="text-[10px] text-pink-200">20 Matemáticas + 20 Lectura</p>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-bold">¡JUGAR!</span>
+                </div>
+
+                <!-- Nivel 2 (Bloqueado) -->
+                <div class="opacity-60 bg-slate-800 p-4 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🔒</span>
+                        <div class="text-left">
+                            <h3 class="font-extrabold text-sm text-slate-400">Nivel 2: 2.º de Primaria</h3>
+                            <p class="text-[10px] text-slate-500">Bloqueado (Requiere Nivel 1)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nivel 3 (Bloqueado) -->
+                <div class="opacity-60 bg-slate-800 p-4 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🔒</span>
+                        <div class="text-left">
+                            <h3 class="font-extrabold text-sm text-slate-400">Nivel 3: 3.º de Primaria</h3>
+                            <p class="text-[10px] text-slate-500">Bloqueado (Requiere Nivel 2)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANTALLA 3: JUEGO / RETO EN CURSO -->
+    <section id="pantalla-juego" class="max-w-md mx-auto w-full my-auto space-y-4 oculto">
         <div class="w-full bg-slate-950 rounded-full h-3 border border-indigo-800/80 p-0.5 shadow-inner">
             <div id="barra-exp" class="bg-gradient-to-r from-amber-400 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
 
-        <!-- Tarjeta Interactiva del Juego -->
-        <div id="game-card" class="bg-slate-900/90 border-2 border-indigo-600/50 rounded-3xl p-6 shadow-2xl text-center space-y-4 relative overflow-hidden backdrop-blur-md">
-            
-            <!-- Etiqueta de Categoría (Matemáticas o Lectura) -->
-            <div>
-                <span id="categoria-tag" class="bg-emerald-600 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block">
-                    Cargando...
-                </span>
+        <div id="game-card" class="bg-slate-900/90 border-2 border-indigo-600/50 rounded-3xl p-6 shadow-2xl text-center space-y-4 backdrop-blur-md">
+            <div class="flex justify-between items-center">
+                <span id="categoria-tag" class="bg-emerald-600 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">Matemáticas</span>
+                <span id="contador-pregunta" class="text-xs font-bold text-purple-300">Pregunta 1/40</span>
             </div>
             
-            <!-- Enunciado de la pregunta -->
             <p id="pregunta-texto" class="text-base font-semibold text-slate-100 min-h-[85px] flex items-center justify-center px-2 leading-relaxed">
-                ¡Preparando el reto para Itzel!
+                Cargando reto...
             </p>
 
-            <!-- Opciones de Respuesta en botones -->
-            <div id="opciones-container" class="grid grid-cols-1 gap-3">
-                <!-- Se inyectan dinámicamente desde js/app.js -->
-            </div>
+            <div id="opciones-container" class="grid grid-cols-1 gap-3"></div>
         </div>
 
-        <!-- Mensaje de Feedback (Acierto o Error) -->
-        <div id="feedback-msg" class="text-center font-bold text-base min-h-[30px] transition-all"></div>
+        <div id="feedback-msg" class="text-center font-bold text-base min-h-[30px]"></div>
+    </section>
 
-    </main>
-
-    <!-- Pie de Página -->
     <footer class="text-center text-xs text-purple-300/60 pb-2">
         Mundo Mágico de Itzel • Aprendizaje Móvil 🚀
     </footer>
 
-    <!-- Carga ordenada de Scripts (Divide y Vencerás) -->
-    <script src="datos/primaria.js"></script>
+    <!-- Carga de Archivos de Datos y Motor JavaScript -->
+    <script src="datos/grado1.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
