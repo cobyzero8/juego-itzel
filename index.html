@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Mundo Mágico de Itzel - Aprende sin Límites</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 text-white min-h-screen flex flex-col justify-between p-4 font-sans">
+
+    <!-- Cabecera Personalizada -->
+    <header class="bg-indigo-900/80 backdrop-blur border border-indigo-700/50 rounded-2xl p-4 shadow-2xl flex justify-between items-center max-w-md mx-auto w-full">
+        <div>
+            <h2 class="text-xs text-purple-300 font-semibold uppercase">Jugadora Estrella</h2>
+            <h1 class="text-lg font-bold text-pink-400">👑 Itzel</h1>
+            <p id="nivel-titulo" class="text-xs font-bold text-amber-400 mt-0.5">🌟 Nivel 1: Exploradora Básica</p>
+        </div>
+        <div class="text-right">
+            <span class="text-xs text-indigo-300">Experiencia</span>
+            <div id="score-display" class="text-xl font-extrabold text-emerald-400">0 XP</div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal del Juego -->
+    <main class="max-w-md mx-auto w-full my-auto space-y-5">
+        
+        <!-- Barra de Progreso de Nivel -->
+        <div class="w-full bg-indigo-950 rounded-full h-3 border border-indigo-800 p-0.5">
+            <div id="barra-exp" class="bg-gradient-to-r from-amber-500 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <!-- Tarjeta de Pregunta -->
+        <div class="bg-indigo-900/90 border-2 border-indigo-700 rounded-3xl p-6 shadow-2xl text-center space-y-4 relative overflow-hidden">
+            <div id="fase-badge" class="absolute top-3 right-4 bg-purple-700 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Primaria</div>
+            
+            <span id="categoria-tag" class="bg-emerald-600 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block">Matemáticas</span>
+            
+            <p id="pregunta-texto" class="text-base font-medium text-indigo-100 min-h-[90px] flex items-center justify-center px-2">
+                Cargando misión...
+            </p>
+
+            <!-- Opciones de Respuesta -->
+            <div id="opciones-container" class="grid grid-cols-1 gap-3">
+                <!-- Inyectado por JS -->
+            </div>
+        </div>
+
+        <!-- Mensaje de Retroalimentación -->
+        <div id="feedback-msg" class="text-center font-bold text-base min-h-[30px]"></div>
+
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="text-center text-xs text-purple-400 pb-2">
+        Diseñado exclusivamente para Itzel 🚀 • De Primaria a Secundaria
+    </footer>
+
+    <!-- Lógica del Juego con Progresión de Niveles -->
+    <script>
+        // Banco de preguntas estructurado por niveles (desde primaria hasta secundaria)
+        const bancoPreguntas = [
+            // NIVEL 1: Primaria Inicial (Matemáticas básicas y lectura sencilla)
+            { nivel: 1, fase: "Primaria", tipo: "Matemáticas 🧮", tagColor: "bg-emerald-600", pregunta: "¿Cuánto es 9 x 6?", opciones: ["54", "48", "56", "63"], correcta: 0 },
+            { nivel: 1, fase: "Primaria", tipo: "Comprensión Lectora 📖", tagColor: "bg-pink-600", pregunta: "Si un cuento dice: 'El sol brillaba con fuerza y los niños jugaban con arena en la orilla del mar.' ¿Dónde están los niños?", opciones: ["En la montaña", "En la playa", "En el colegio", "En el parque"], correcta: 1 },
+            
+            // NIVEL 2: Primaria Intermedia (Fracciones y sinónimos)
+            { nivel: 2, fase: "Primaria", tipo: "Matemáticas 🧮", tagColor: "bg-emerald-600", pregunta: "¿Cuánto es la mitad de 150?", opciones: ["65", "70", "75", "80"], correcta: 2 },
+            { nivel: 2, fase: "Primaria", tipo: "Comprensión Lectora 📖", tagColor: "bg-pink-600", pregunta: "Sinónimo de la palabra 'Gigante' en una lectura:", opciones: ["Pequeño", "Enorme", "Rápido", "Triste"], correcta: 1 },
+
+            // NIVEL 3: Primaria Avanzada (Operaciones combinadas y textos complejos)
+            { nivel: 3, fase: "Primaria", tipo: "Matemáticas 🧮", tagColor: "bg-emerald-600", pregunta: "Resuelve: 20 + 5 x 4 =", opciones: ["100", "40", "45", "25"], correcta: 1 },
+            { nivel: 3, fase: "Primaria", tipo: "Comprensión Lectora 📖", tagColor: "bg-pink-600", pregunta: "Lee: 'A pesar de la tormenta, el viejo roble mantuvo sus raíces firmes.' ¿Qué demuestra principalmente el roble?", opciones: ["Debilidad", "Resistencia", "Miedo", "Soledad"], correcta: 1 },
+
+            // NIVEL 4: Secundaria Inicial (Álgebra básica y análisis)
+            { nivel: 4, fase: "Secundaria Junior", tipo: "Matemáticas 🧮", tagColor: "bg-blue-600", pregunta: "Si 3x = 21, ¿cuánto vale x?", opciones: ["5", "6", "7", "8"], correcta: 2 },
+            { nivel: 4, fase: "Secundaria Junior", tipo: "Comprensión Lectora 📖", tagColor: "bg-indigo-600", pregunta: "En un texto argumentativo, ¿qué es la tesis?", opciones: ["El resumen final", "La idea principal que se defiende", "Un error ortográfico", "El título del libro"], correcta: 1 },
+
+            // NIVEL 5: Secundaria Avanzada (Ecuaciones y lectura crítica)
+            { nivel: 5, fase: "Secundaria Pro", tipo: "Matemáticas 🧮", tagColor: "bg-blue-600", pregunta: "¿Cuál es el área de un triángulo con base 10 cm y altura 6 cm?", opciones: ["60 cm²", "30 cm²", "15 cm²", "45 cm²"], correcta: 1 },
+            { nivel: 5, fase: "Secundaria Pro", tipo: "Comprensión Lectora 📖", tagColor: "bg-indigo-600", pregunta: "En una lectura crítica, ¿qué significa 'inferir'?", opciones: ["Leer en voz alta", "Copiar textualmente", "Sacar una conclusión lógica basada en indicios", "Inventar datos"], correcta: 2 }
+        ];
+
+        let indiceActual = 0;
+        let puntos = 0;
+        let experienciaNivel = 0;
+
+        const preguntaTexto = document.getElementById('pregunta-texto');
+        const opcionesContainer = document.getElementById('opciones-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const feedbackMsg = document.getElementById('feedback-msg');
+        const categoriaTag = document.getElementById('categoria-tag');
+        const faseBadge = document.getElementById('fase-badge');
+        const barraExp = document.getElementById('barra-exp');
+        const nivelTitulo = document.getElementById('nivel-titulo');
+
+        function cargarPregunta() {
+            feedbackMsg.textContent = "";
+            if (indiceActual >= bancoPreguntas.length) {
+                indiceActual = 0; // Bucle infinito de aprendizaje o mensaje de victoria
+            }
+
+            const q = bancoPreguntas[indiceActual];
+            categoriaTag.textContent = q.tipo;
+            categoriaTag.className = `${q.tagColor} text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider inline-block`;
+            faseBadge.textContent = q.fase;
+            preguntaTexto.textContent = q.pregunta;
+
+            opcionesContainer.innerHTML = "";
+            q.opciones.forEach((opcion, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = opcion;
+                btn.className = "w-full bg-indigo-950/80 hover:bg-indigo-800 border border-indigo-600/60 p-3 rounded-xl font-semibold transition text-indigo-100 text-left px-4 text-sm md:text-base";
+                btn.onclick = () => verificarRespuesta(index, q.correcta);
+                opcionesContainer.appendChild(btn);
+            });
+        }
+
+        function verificarRespuesta(seleccionada, correcta) {
+            const botones = opcionesContainer.getElementsByTagName('button');
+            
+            if (seleccionada === correcta) {
+                botones[seleccionada].className = "w-full bg-emerald-600 border border-emerald-400 p-3 rounded-xl font-semibold text-white text-left px-4 text-sm md:text-base";
+                feedbackMsg.textContent = "🎉 ¡Excelente, Itzel! ¡Punto ganado!";
+                feedbackMsg.className = "text-center font-bold text-base text-emerald-400";
+                
+                puntos += 25;
+                experienciaNivel += 20;
+                scoreDisplay.textContent = `${puntos} XP`;
+
+                // Actualizar barra y nivel dinámicamente
+                let porcentajeBarra = (experienciaNivel % 100);
+                barraExp.style.width = `${porcentajeBarra}%`;
+
+                if (puntos >= 50 && puntos < 100) {
+                    nivelTitulo.textContent = "🚀 Nivel 2: Primaria Avanzada";
+                } else if (puntos >= 100 && puntos < 150) {
+                    nivelTitulo.textContent = "⚡ Nivel 3: Secundaria Junior";
+                } else if (puntos >= 150) {
+                    nivelTitulo.textContent = "👑 Nivel 4: Máster en Secundaria";
+                }
+
+                setTimeout(() => {
+                    indiceActual++;
+                    cargarPregunta();
+                }, 1500);
+            } else {
+                botones[seleccionada].className = "w-full bg-rose-600 border border-rose-400 p-3 rounded-xl font-semibold text-white text-left px-4 text-sm md:text-base";
+                botones[correcta].className = "w-full bg-emerald-700 border border-emerald-400 p-3 rounded-xl font-semibold text-white text-left px-4 text-sm md:text-base";
+                feedbackMsg.textContent = "❌ ¡Casi lo logras! Revisa la respuesta correcta.";
+                feedbackMsg.className = "text-center font-bold text-base text-rose-400";
+
+                setTimeout(() => {
+                    indiceActual++;
+                    cargarPregunta();
+                }, 2000);
+            }
+        }
+
+        // Iniciar juego
+        cargarPregunta();
+    </script>
+</body>
+</html>
