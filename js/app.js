@@ -1,53 +1,54 @@
-/* ============================================================
-   MOTOR PRINCIPAL DEL JUEGO CON MAPA Y SELECCIÓN DE AVATAR
-   ============================================================ */
-
 let avatarSeleccionado = '🦸‍♀️';
 let preguntasDelNivel = [];
 let indicePregunta = 0;
 let aciertosTotales = 0;
 let puntosXP = 0;
 
-// 1. Manejo del Avatar
-function seleccionarAvatar(emoji, nombre) {
+// Seleccionar Avatar en pantalla 1
+function seleccionarAvatar(emoji, elemento) {
     avatarSeleccionado = emoji;
     const cards = document.querySelectorAll('.avatar-card');
-    cards.forEach(c => c.classList.remove('seleccionado'));
-    event.currentTarget.classList.add('seleccionado');
+    cards.forEach(c => c.classList.remove('border-pink-500', 'bg-pink-900/30'));
+    elemento.classList.add('border-pink-500', 'bg-pink-900/30');
 }
 
+// Confirmar e ir a la Montaña
 function confirmarAvatar() {
     document.getElementById('header-avatar').textContent = avatarSeleccionado;
-    localStorage.setItem('itzel_avatar', avatarSeleccionado);
-    
-    // Cambiar a la pantalla del Mapa
-    document.getElementById('pantalla-avatar').classList.add('oculto');
-    document.getElementById('pantalla-mapa').classList.remove('oculto');
+    document.getElementById('pantalla-avatar').classList.add('hidden');
+    document.getElementById('pantalla-mapa').classList.remove('hidden');
     document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
 }
 
-// 2. Iniciar Nivel en el Mapa
+// Iniciar Nivel con animación intermedia
 function iniciarNivel(numeroNivel) {
-    if (numeroNivel === 1) {
-        // Combinar las 20 de matemáticas y 20 de lectura del Grado 1
+    if (numeroNivel === 1 && typeof nivel1_Grado1 !== 'undefined') {
         preguntasDelNivel = [...nivel1_Grado1.matematicas, ...nivel1_Grado1.lectura];
         indicePregunta = 0;
         aciertosTotales = 0;
 
-        document.getElementById('pantalla-mapa').classList.add('oculto');
-        document.getElementById('pantalla-juego').classList.remove('oculto');
-        
-        cargarPreguntaActual();
+        // Ocultar mapa y mostrar pantalla de animación
+        document.getElementById('pantalla-mapa').classList.add('hidden');
+        document.getElementById('anim-avatar-emoji').textContent = avatarSeleccionado;
+        document.getElementById('pantalla-animacion').classList.remove('hidden');
+
+        // Esperar 2 segundos de animación antes de iniciar
+        setTimeout(() => {
+            document.getElementById('pantalla-animacion').classList.add('hidden');
+            document.getElementById('pantalla-juego').classList.remove('hidden');
+            document.getElementById('nivel-titulo').textContent = "⛰️ Nivel 1: 1.º Primaria";
+            cargarPreguntaActual();
+        }, 1800);
     }
 }
 
-// 3. Renderizar la pregunta en pantalla
 function cargarPreguntaActual() {
-    const feedback = document.getElementById('feedback-msg');
-    feedback.textContent = "";
+    document.getElementById('feedback-msg').textContent = "";
 
     if (indicePregunta >= preguntasDelNivel.length) {
-        finalizarNivel();
+        alert(`🏆 ¡Felicidades Itzel! Completaste el bloque con ${aciertosTotales} aciertos de 40.`);
+        document.getElementById('pantalla-juego').classList.add('hidden');
+        document.getElementById('pantalla-mapa').classList.remove('hidden');
         return;
     }
 
@@ -61,7 +62,6 @@ function cargarPreguntaActual() {
     document.getElementById('contador-pregunta').textContent = `Pregunta ${indicePregunta + 1} de 40`;
     document.getElementById('pregunta-texto').textContent = q.pregunta;
 
-    // Actualizar barra de progreso del bloque
     const barra = document.getElementById('barra-exp');
     barra.style.width = `${((indicePregunta) / 40) * 100}%`;
 
@@ -77,7 +77,6 @@ function cargarPreguntaActual() {
     });
 }
 
-// 4. Evaluar la respuesta elegida
 function evaluarRespuesta(seleccion, correcta, btnElem) {
     const todosBotones = document.querySelectorAll('#opciones-container button');
     todosBotones.forEach(b => b.disabled = true);
@@ -94,7 +93,7 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
     } else {
         btnElem.className = "w-full bg-rose-600 border border-rose-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
         todosBotones[correcta].className = "w-full bg-emerald-700 border border-emerald-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
-        feedback.textContent = "❌ ¡Casi lo logras! Aprendamos de esta respuesta.";
+        feedback.textContent = "❌ ¡Casi! La respuesta correcta era la verde.";
         feedback.className = "text-center font-bold text-base text-rose-400";
     }
 
@@ -103,26 +102,3 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
         cargarPreguntaActual();
     }, 1500);
 }
-
-// 5. Pantalla de Resultados al terminar las 40 preguntas
-function finalizarNivel() {
-    const aprobado = aciertosTotales >= nivel1_Grado1.minimoAciertos;
-    
-    document.getElementById('pantalla-juego').classList.add('oculto');
-    document.getElementById('pantalla-mapa').classList.remove('oculto');
-
-    if (aprobado) {
-        alert(`🏆 ¡FELICIDADES ITZEL! 🏆\n\nLograste ${aciertosTotales} aciertos de 40.\n¡Has completado el Nivel 1 (1.º de Primaria) y desbloqueaste el Nivel 2!`);
-    } else {
-        alert(`¡Buen intento Itzel! 🌟\n\nLograste ${aciertosTotales} aciertos de 40. Necesitas 30 aciertos para pasar de nivel.\n¡Inténtalo de nuevo, tú puedes!`);
-    }
-}
-
-// Cargar Avatar guardado al iniciar si existe
-document.addEventListener('DOMContentLoaded', () => {
-    const avatarGuardado = localStorage.getItem('itzel_avatar');
-    if (avatarGuardado) {
-        avatarSeleccionado = avatarGuardado;
-        document.getElementById('header-avatar').textContent = avatarSeleccionado;
-    }
-});
