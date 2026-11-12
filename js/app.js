@@ -1,6 +1,8 @@
 /* ============================================================
-   MOTOR ILUSTRADO Y ANIMADO PARA ITZEL (js/app.js)
+   MOTOR ILUSTRADO CON LOGIN DE PROGRAMADOR (js/app.js)
    ============================================================ */
+
+let modoProgramadorActivo = false;
 
 let estadoJuego = {
     avatar: 'foto',
@@ -9,7 +11,9 @@ let estadoJuego = {
     nivelMaxDesbloqueado: 1,
     progresoNiveles: {
         1: { indice: 0, aciertos: 0, completado: false },
-        2: { indice: 0, aciertos: 0, completado: false }
+        2: { indice: 0, aciertos: 0, completado: false },
+        3: { indice: 0, aciertos: 0, completado: false },
+        4: { indice: 0, aciertos: 0, completado: false }
     }
 };
 
@@ -54,7 +58,78 @@ function reproducirSonido(tipo) {
     } catch (e) {}
 }
 
-// --- 2. NAVEGACIÓN ---
+// --- 2. LOGIN Y CONTROLES DE PROGRAMADOR (Usuario: coby / Pass: 123456pp) ---
+function abrirModalLogin() {
+    if (modoProgramadorActivo) {
+        aplicarConfiguracionDev();
+        return;
+    }
+    document.getElementById('dev-user').value = "";
+    document.getElementById('dev-pass').value = "";
+    document.getElementById('login-error-msg').textContent = "";
+    document.getElementById('modal-login-dev').style.display = 'flex';
+}
+
+function cerrarModalLogin() {
+    document.getElementById('modal-login-dev').style.display = 'none';
+}
+
+function validarLoginDev() {
+    const user = document.getElementById('dev-user').value.trim().toLowerCase();
+    const pass = document.getElementById('dev-pass').value.trim();
+
+    if (user === 'coby' && pass === '123456pp') {
+        modoProgramadorActivo = true;
+        sessionStorage.setItem('itzel_dev_auth', 'true');
+        reproducirSonido('acierto');
+        cerrarModalLogin();
+        aplicarConfiguracionDev();
+    } else {
+        reproducirSonido('error');
+        document.getElementById('login-error-msg').textContent = "❌ Usuario o contraseña incorrectos";
+    }
+}
+
+function cerrarModoDev() {
+    modoProgramadorActivo = false;
+    sessionStorage.removeItem('itzel_dev_auth');
+    aplicarConfiguracionDev();
+}
+
+function aplicarConfiguracionDev() {
+    const panelMapa = document.getElementById('panel-dev-mapa');
+    const btnTestAula = document.getElementById('btn-test-aula');
+    if (panelMapa) panelMapa.style.display = modoProgramadorActivo ? 'flex' : 'none';
+    if (btnTestAula) btnTestAula.style.display = modoProgramadorActivo ? 'inline-block' : 'none';
+}
+
+function testDesbloquearTodo() {
+    if (!modoProgramadorActivo) return;
+    estadoJuego.nivelMaxDesbloqueado = 10;
+    guardarEstado();
+    actualizarMapaVisual();
+    reproducirSonido('acierto');
+}
+
+function testReiniciarJuego() {
+    if (!modoProgramadorActivo) return;
+    localStorage.removeItem('itzel_mundo_v4');
+    location.reload();
+}
+
+function testCompletarNivelRapido() {
+    if (!modoProgramadorActivo) return;
+    if (!estadoJuego.progresoNiveles[nivelJugando]) {
+        estadoJuego.progresoNiveles[nivelJugando] = { indice: 0, aciertos: 0, completado: false };
+    }
+    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    progreso.aciertos = 38;
+    progreso.indice = 40;
+    estadoJuego.xp += 200;
+    finalizarBloqueNivel();
+}
+
+// --- 3. NAVEGACIÓN ---
 function mostrarPantalla(idPantalla) {
     const pantallas = ['pantalla-portada', 'pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
     pantallas.forEach(id => {
@@ -66,6 +141,7 @@ function mostrarPantalla(idPantalla) {
     if (header) {
         header.style.display = (idPantalla === 'pantalla-portada') ? 'none' : 'flex';
     }
+    aplicarConfiguracionDev();
 }
 
 function entrarDesdePortada() {
@@ -107,7 +183,7 @@ function volverAlMapa() {
     mostrarPantalla('pantalla-mapa');
 }
 
-// --- 3. CABECERA Y MAPA ---
+// --- 4. CABECERA Y MAPA ---
 function actualizarHeader() {
     const box = document.getElementById('header-avatar-box');
     if (estadoJuego.avatar === 'foto') {
@@ -126,36 +202,62 @@ function actualizarMapaVisual() {
     document.getElementById('nivel-titulo').textContent = "🏫 Aulas de la Montaña";
 
     const p1 = estadoJuego.progresoNiveles[1];
-    if (p1.completado) {
+    if (p1 && p1.completado) {
         document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Completada! (${p1.aciertos}/40 aciertos)`;
         document.getElementById('tarjeta-nivel-1').classList.remove('nodo-activo');
-    } else if (p1.indice > 0) {
+    } else if (p1 && p1.indice > 0) {
         document.getElementById('subtitulo-nivel-1').textContent = `En curso: Reto ${p1.indice + 1} de 40`;
     }
 
-    const card2 = document.getElementById('tarjeta-nivel-2');
-    const p2 = estadoJuego.progresoNiveles[2];
-    if (estadoJuego.nivelMaxDesbloqueado >= 2) {
-        card2.className = "nodo-activo cursor-pointer bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-2xl border-2 border-emerald-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
-        document.getElementById('titulo-nivel-2').className = "font-extrabold text-sm text-white";
-        document.getElementById('subtitulo-nivel-2').className = "text-[10px] text-emerald-100";
-        document.getElementById('subtitulo-nivel-2').textContent = p2.completado
-            ? `✅ ¡Completada! (${p2.aciertos}/40 aciertos)`
-            : (p2.indice > 0 ? `En curso: Reto ${p2.indice + 1} de 40` : "20 Matemáticas + 20 Lectura");
-        document.getElementById('badge-nivel-2').className = "text-xs bg-white text-emerald-900 px-3.5 py-1.5 rounded-full font-extrabold shadow";
-        document.getElementById('badge-nivel-2').textContent = "¡ENTRAR!";
-    }
+    // Actualizar Aulas 2, 3 y 4 dinámicamente si se desbloquean
+    const coloresAula = {
+        2: "from-emerald-600 to-teal-600 border-emerald-300 text-emerald-900",
+        3: "from-sky-600 to-indigo-600 border-sky-300 text-sky-900",
+        4: "from-amber-500 to-orange-600 border-amber-300 text-amber-950"
+    };
+
+    [2, 3, 4].forEach(num => {
+        const card = document.getElementById(`tarjeta-nivel-${num}`);
+        if (!card) return;
+        const prog = estadoJuego.progresoNiveles[num] || { indice: 0, aciertos: 0, completado: false };
+
+        if (estadoJuego.nivelMaxDesbloqueado >= num) {
+            const estilos = coloresAula[num].split(' ');
+            card.className = `nodo-activo cursor-pointer bg-gradient-to-r ${estilos[0]} ${estilos[1]} p-4 rounded-2xl border-2 ${estilos[2]} flex justify-between items-center shadow-lg transform active:scale-95 transition`;
+            document.getElementById(`titulo-nivel-${num}`).className = "font-extrabold text-sm text-white";
+            document.getElementById(`subtitulo-nivel-${num}`).className = "text-[10px] text-white/90";
+            document.getElementById(`subtitulo-nivel-${num}`).textContent = prog.completado
+                ? `✅ ¡Completada! (${prog.aciertos}/40 aciertos)`
+                : (prog.indice > 0 ? `En curso: Reto ${prog.indice + 1} de 40` : "20 Matemáticas + 20 Lectura");
+            document.getElementById(`badge-nivel-${num}`).className = `text-xs bg-white ${estilos[3]} px-3.5 py-1.5 rounded-full font-extrabold shadow`;
+            document.getElementById(`badge-nivel-${num}`).textContent = "¡ENTRAR!";
+        }
+    });
 }
 
-// --- 4. INICIAR AULA ---
+// --- 5. INICIAR AULA ---
 function intentarNivel(num) {
     if (num > estadoJuego.nivelMaxDesbloqueado) {
         reproducirSonido('error');
         return;
     }
 
-    const datosGrado = (num === 1) ? nivel1_Grado1 : nivel2_Grado2;
-    if (typeof datosGrado === 'undefined') return;
+    const mapaDatos = {
+        1: typeof nivel1_Grado1 !== 'undefined' ? nivel1_Grado1 : null,
+        2: typeof nivel2_Grado2 !== 'undefined' ? nivel2_Grado2 : null,
+        3: typeof nivel3_Grado3 !== 'undefined' ? nivel3_Grado3 : null,
+        4: typeof nivel4_Grado4 !== 'undefined' ? nivel4_Grado4 : null
+    };
+
+    const datosGrado = mapaDatos[num];
+    if (!datosGrado) {
+        alert(`El Aula ${num} aún está vacía. ¡Avísame y llenamos sus 40 preguntas ilustradas!`);
+        return;
+    }
+
+    if (!estadoJuego.progresoNiveles[num]) {
+        estadoJuego.progresoNiveles[num] = { indice: 0, aciertos: 0, completado: false };
+    }
 
     nivelJugando = num;
     preguntasDelNivel = [...datosGrado.matematicas, ...datosGrado.lectura];
@@ -186,7 +288,7 @@ function intentarNivel(num) {
     }, 1500);
 }
 
-// --- 5. PREGUNTAS CON ESCENARIO VISUAL ANIMADO ---
+// --- 6. PREGUNTAS CON ESCENARIO VISUAL ---
 function cargarPreguntaActual() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const idx = progreso.indice;
@@ -279,15 +381,6 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
     }, 1450);
 }
 
-// --- 6. MODO TEST RÁPIDO PARA PROBAR EL SIGUIENTE GRADO ---
-function testCompletarNivelRapido() {
-    const progreso = estadoJuego.progresoNiveles[nivelJugando];
-    progreso.aciertos = 38;
-    progreso.indice = 40;
-    estadoJuego.xp += 200;
-    finalizarBloqueNivel();
-}
-
 // --- 7. VICTORIA ---
 function finalizarBloqueNivel() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
@@ -334,6 +427,10 @@ function cargarEstado() {
     if (guardado) {
         estadoJuego = JSON.parse(guardado);
     }
+    if (sessionStorage.getItem('itzel_dev_auth') === 'true') {
+        modoProgramadorActivo = true;
+    }
+    aplicarConfiguracionDev();
     mostrarPantalla('pantalla-portada');
 }
 
