@@ -1,3 +1,114 @@
+/* ============================================================
+   ESTILOS ÉPICOS Y MEDALLÓN ANIMADO - MUNDO DE ITZEL
+   ============================================================ */
+
+* {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    background-image: 
+        radial-gradient(white, rgba(255,255,255,.25) 2px, transparent 4px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 3px),
+        linear-gradient(to bottom right, #1e1b4b, #0f172a, #4a044e);
+    background-size: 320px 320px, 180px 180px, 100% 100%;
+    background-position: 0 0, 40px 60px, 0 0;
+}
+
+/* Entrada épica desde abajo con rebote suave */
+@keyframes entrada-epica {
+    0% { opacity: 0; transform: scale(0.75) translateY(30px); }
+    70% { opacity: 1; transform: scale(1.03) translateY(-4px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.anim-entrada-epica {
+    animation: entrada-epica 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Halo mágico giratorio detrás de la foto de Itzel */
+@keyframes girar-halo {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.medallon-contenedor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.medallon-halo {
+    position: absolute;
+    inset: -6px;
+    border-radius: 9999px;
+    background: conic-gradient(from 0deg, #f472b6, #fbbf24, #34d399, #60a5fa, #f472b6);
+    animation: girar-halo 4s linear infinite;
+    z-index: 0;
+}
+
+.medallon-foto {
+    position: relative;
+    z-index: 1;
+    object-fit: cover;
+    border-radius: 9999px;
+    border: 3px solid #1e1b4b;
+}
+
+/* Flotación suave */
+@keyframes flotar-avatar {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-7px); }
+}
+
+.avatar-flotante {
+    animation: flotar-avatar 2.8s ease-in-out infinite;
+}
+
+/* Botones de respuesta con efecto 3D táctil */
+.btn-opcion {
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 5px 0 #1e1b4b;
+}
+
+.btn-opcion:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #1e1b4b;
+}
+
+/* Pulso mágico en el mapa */
+@keyframes mapa-nodo-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+    70% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(236, 72, 153, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+}
+
+.nodo-activo {
+    animation: mapa-nodo-pulse 2s infinite;
+}
+
+@keyframes acierto-pulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+}
+
+.anim-acierto {
+    animation: acierto-pulse 0.45s ease-out;
+}
+
+@keyframes error-shake {
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+}
+
+.anim-error {
+    animation: error-shake 0.4s ease-in-out;
+}
+
 /* Escenario ilustrado dentro de cada pregunta */
 @keyframes escena-entrada {
     0% { opacity: 0; transform: scale(0.8) translateY(10px); }
