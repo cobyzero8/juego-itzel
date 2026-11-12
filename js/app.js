@@ -1,5 +1,6 @@
 /* ============================================================
-   MOTOR ILUSTRADO CON LOGIN DE PROGRAMADOR (js/app.js)
+   MOTOR PEDAGÓGICO ADAPTATIVO PARA ITZEL (js/app.js)
+   Incluye: Pistas Mágicas, Explicación al Fallar y Repetición
    ============================================================ */
 
 let modoProgramadorActivo = false;
@@ -18,7 +19,8 @@ let estadoJuego = {
 };
 
 let nivelJugando = 1;
-let preguntasDelNivel = [];
+let colaPreguntas = [];
+let totalInicialAula = 30;
 let rachaActual = 0;
 
 // --- 1. SONIDOS MÁGICOS ---
@@ -58,16 +60,14 @@ function reproducirSonido(tipo) {
     } catch (e) {}
 }
 
-// --- 2. LOGIN Y CONTROLES DE PROGRAMADOR (Usuario: coby / Pass: 123456pp) ---
+// --- 2. LOGIN PROGRAMADOR (Usuario: coby / Pass: 123456pp) ---
 function abrirModalLogin() {
     const modal = document.getElementById('modal-login-dev');
     if (!modal) return;
-
     if (modoProgramadorActivo) {
         aplicarConfiguracionDev();
         return;
     }
-
     document.getElementById('dev-user').value = "";
     document.getElementById('dev-pass').value = "";
     document.getElementById('login-error-msg').textContent = "";
@@ -118,19 +118,16 @@ function testDesbloquearTodo() {
 
 function testReiniciarJuego() {
     if (!modoProgramadorActivo) return;
-    localStorage.removeItem('itzel_mundo_v4');
+    localStorage.removeItem('itzel_mundo_v5');
     location.reload();
 }
 
 function testCompletarNivelRapido() {
     if (!modoProgramadorActivo) return;
-    if (!estadoJuego.progresoNiveles[nivelJugando]) {
-        estadoJuego.progresoNiveles[nivelJugando] = { indice: 0, aciertos: 0, completado: false };
-    }
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
-    progreso.aciertos = 38;
-    progreso.indice = 40;
-    estadoJuego.xp += 200;
+    progreso.aciertos = totalInicialAula;
+    progreso.indice = colaPreguntas.length;
+    estadoJuego.xp += 250;
     finalizarBloqueNivel();
 }
 
@@ -204,14 +201,12 @@ function actualizarHeader() {
 }
 
 function actualizarMapaVisual() {
-    document.getElementById('nivel-titulo').textContent = "🏫 Aulas de la Montaña";
+    document.getElementById('nivel-titulo').textContent = "🏫 Aulas de Aprendizaje";
 
     const p1 = estadoJuego.progresoNiveles[1];
     if (p1 && p1.completado) {
-        document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Completada! (${p1.aciertos}/40 aciertos)`;
+        document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Dominada! (${p1.aciertos} aciertos)`;
         document.getElementById('tarjeta-nivel-1').classList.remove('nodo-activo');
-    } else if (p1 && p1.indice > 0) {
-        document.getElementById('subtitulo-nivel-1').textContent = `En curso: Reto ${p1.indice + 1} de 40`;
     }
 
     const coloresAula = {
@@ -231,8 +226,8 @@ function actualizarMapaVisual() {
             document.getElementById(`titulo-nivel-${num}`).className = "font-extrabold text-sm text-white";
             document.getElementById(`subtitulo-nivel-${num}`).className = "text-[10px] text-white/90";
             document.getElementById(`subtitulo-nivel-${num}`).textContent = prog.completado
-                ? `✅ ¡Completada! (${prog.aciertos}/40 aciertos)`
-                : (prog.indice > 0 ? `En curso: Reto ${prog.indice + 1} de 40` : "20 Matemáticas + 20 Lectura");
+                ? `✅ ¡Dominada! (${prog.aciertos} aciertos)`
+                : "Suma, Resta, Mult., Div., Raz. y Lectura";
             document.getElementById(`badge-nivel-${num}`).className = `text-xs bg-white ${estilos[3]} px-3.5 py-1.5 rounded-full font-extrabold shadow`;
             document.getElementById(`badge-nivel-${num}`).textContent = "¡ENTRAR!";
         }
@@ -255,7 +250,7 @@ function intentarNivel(num) {
 
     const datosGrado = mapaDatos[num];
     if (!datosGrado) {
-        alert(`El Aula ${num} aún está vacía. ¡Avísame y llenamos sus 40 preguntas ilustradas!`);
+        alert(`El Aula ${num} se está preparando. ¡Vamos a llenarla!`);
         return;
     }
 
@@ -264,11 +259,12 @@ function intentarNivel(num) {
     }
 
     nivelJugando = num;
-    preguntasDelNivel = [...datosGrado.matematicas, ...datosGrado.lectura];
+    // Cargar todas las preguntas del aula (matemáticas completas + lecturas completas)
+    colaPreguntas = [...datosGrado.matematicas, ...datosGrado.lectura];
+    totalInicialAula = colaPreguntas.length;
     rachaActual = 0;
-    document.getElementById('racha-badge').textContent = "🔥 0";
 
-    if (estadoJuego.progresoNiveles[num].indice >= preguntasDelNivel.length) {
+    if (estadoJuego.progresoNiveles[num].indice >= colaPreguntas.length) {
         estadoJuego.progresoNiveles[num].indice = 0;
         estadoJuego.progresoNiveles[num].aciertos = 0;
     }
@@ -280,49 +276,71 @@ function intentarNivel(num) {
         animBox.innerHTML = `<div class="text-7xl">${estadoJuego.avatar}</div>`;
     }
 
-    document.getElementById('anim-titulo').textContent = `¡Aula ${num}: ${num}.º de Primaria!`;
-    document.getElementById('anim-subtitulo').textContent = `¡Vamos Itzel! Continuando en reto ${estadoJuego.progresoNiveles[num].indice + 1}...`;
+    document.getElementById('anim-titulo').textContent = `¡Aula ${num}: ${datosGrado.nombre}!`;
+    document.getElementById('anim-subtitulo').textContent = `¡Vamos Itzel! Usa las Pistas Mágicas si necesitas ayuda.`;
     reproducirSonido('acierto');
     mostrarPantalla('pantalla-animacion');
 
     setTimeout(() => {
         mostrarPantalla('pantalla-juego');
-        document.getElementById('nivel-titulo').textContent = `🏫 Aula ${num}: ${num}.º Primaria`;
+        document.getElementById('nivel-titulo').textContent = `🏫 Aula ${num}`;
         cargarPreguntaActual();
     }, 1500);
 }
 
-// --- 6. PREGUNTAS CON ESCENARIO VISUAL ---
+// --- 6. PREGUNTAS CON PISTA, LECTURA LARGA Y ESCENARIO VISUAL ---
 function cargarPreguntaActual() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const idx = progreso.indice;
-    document.getElementById('feedback-msg').textContent = "";
 
-    if (idx >= preguntasDelNivel.length) {
+    document.getElementById('caja-pista').style.display = 'none';
+    document.getElementById('feedback-box').style.display = 'none';
+
+    if (idx >= colaPreguntas.length) {
         finalizarBloqueNivel();
         return;
     }
 
-    const q = preguntasDelNivel[idx];
-    const esMatematica = idx < 20;
+    const q = colaPreguntas[idx];
 
+    // Etiqueta de sub-área (Suma, Resta, Multiplicación, División, Razonamiento, Lectura)
     const catTag = document.getElementById('categoria-tag');
-    catTag.textContent = esMatematica ? "Matemáticas 🧮" : "Comprensión Lectora 📖";
-    catTag.className = esMatematica
-        ? "bg-emerald-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow"
-        : "bg-pink-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow";
+    catTag.textContent = q.area || (q.textoLectura ? "Lectura 📖" : "Matemáticas 🧮");
 
+    const coloresArea = {
+        "Suma ➕": "bg-emerald-600",
+        "Resta ➖": "bg-teal-600",
+        "Multiplicación ✖️": "bg-indigo-600",
+        "División ➗": "bg-purple-600",
+        "Razonamiento 🧠": "bg-amber-600",
+        "Lectura 📖": "bg-pink-600"
+    };
+    const bgClase = coloresArea[q.area] || "bg-emerald-600";
+    catTag.className = `${bgClase} text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow`;
+
+    // Guardar pista actual
+    document.getElementById('texto-pista').textContent = q.pista || "Observa con calma los dibujos y cuenta paso a paso.";
+
+    // Escenario Visual Animado
     const escenaCaja = document.getElementById('escena-caja');
     const escenaDibujo = document.getElementById('escena-dibujo');
     escenaCaja.classList.remove('escena-visual');
     void escenaCaja.offsetWidth;
     escenaCaja.classList.add('escena-visual');
+    escenaDibujo.textContent = q.dibujo || "🌟 ✨ 🎓 ✨ 🌟";
 
-    escenaDibujo.textContent = q.dibujo || (esMatematica ? "🧮 ✨ 🔢 ✨ 📐" : "📖 ✨ 🦄 ✨ 🌟");
+    // Caja de Lectura Mediana / Grande (si la pregunta trae textoLectura)
+    const cajaLectura = document.getElementById('caja-lectura');
+    if (q.textoLectura) {
+        cajaLectura.style.display = 'block';
+        document.getElementById('texto-lectura').textContent = q.textoLectura;
+    } else {
+        cajaLectura.style.display = 'none';
+    }
 
-    document.getElementById('contador-pregunta').textContent = `Reto ${idx + 1} / 40`;
+    document.getElementById('contador-pregunta').textContent = `Reto ${idx + 1} / ${colaPreguntas.length}`;
     document.getElementById('pregunta-texto').textContent = q.pregunta;
-    document.getElementById('barra-exp').style.width = `${(idx / 40) * 100}%`;
+    document.getElementById('barra-exp').style.width = `${(idx / colaPreguntas.length) * 100}%`;
 
     const contenedor = document.getElementById('opciones-container');
     contenedor.innerHTML = "";
@@ -331,65 +349,95 @@ function cargarPreguntaActual() {
         const btn = document.createElement('button');
         btn.textContent = opcion;
         btn.className = "btn-opcion w-full bg-slate-800/95 hover:bg-slate-700 border-2 border-indigo-500/40 p-3.5 rounded-2xl font-bold transition text-slate-100 text-left px-4 text-sm";
-        btn.onclick = () => evaluarRespuesta(i, q.correcta, btn);
+        btn.onclick = () => evaluarRespuesta(i, q, btn);
         contenedor.appendChild(btn);
     });
 }
 
-function evaluarRespuesta(seleccion, correcta, btnElem) {
+function mostrarPista() {
+    const caja = document.getElementById('caja-pista');
+    if (caja.style.display === 'none') {
+        caja.style.display = 'block';
+        reproducirSonido('acierto');
+    } else {
+        caja.style.display = 'none';
+    }
+}
+
+function evaluarRespuesta(seleccion, q, btnElem) {
     const todosBotones = document.querySelectorAll('#opciones-container button');
     todosBotones.forEach(b => b.disabled = true);
 
     const card = document.getElementById('game-card');
-    const feedback = document.getElementById('feedback-msg');
+    const feedbackBox = document.getElementById('feedback-box');
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
 
-    if (seleccion === correcta) {
+    feedbackBox.style.display = 'block';
+
+    if (seleccion === q.correcta) {
         reproducirSonido('acierto');
         btnElem.className = "w-full bg-emerald-600 border-2 border-emerald-300 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm shadow-lg";
         card.classList.add('anim-acierto');
 
         rachaActual++;
         progreso.aciertos++;
-        estadoJuego.xp += 25;
+        estadoJuego.xp += 30;
         estadoJuego.monedas += 5;
 
-        document.getElementById('racha-badge').textContent = `🔥 ${rachaActual}`;
-        feedback.textContent = rachaActual >= 3
+        feedbackBox.className = "rounded-2xl p-3 text-center font-bold text-xs leading-relaxed border bg-emerald-950/80 border-emerald-500/50 text-emerald-300";
+        feedbackBox.textContent = rachaActual >= 3
             ? `🔥 ¡Súper racha de ${rachaActual}, Itzel! +5 🪙`
-            : "🌟 ¡Genial, Itzel! Respuesta correcta +5 🪙";
-        feedback.className = "text-center font-extrabold text-sm text-emerald-400";
+            : "🌟 ¡Excelente, Itzel! Lo resolviste muy bien +5 🪙";
 
         if (typeof confetti === 'function') {
             confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
         }
+
+        progreso.indice++;
+        actualizarHeader();
+        guardarEstado();
+
+        setTimeout(() => {
+            card.classList.remove('anim-acierto');
+            cargarPreguntaActual();
+        }, 1400);
+
     } else {
+        // ERROR: Enseñar por qué y volver a practicar la pregunta más adelante
         reproducirSonido('error');
         btnElem.className = "w-full bg-rose-600 border-2 border-rose-300 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
-        todosBotones[correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
+        todosBotones[q.correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
         card.classList.add('anim-error');
 
         rachaActual = 0;
-        document.getElementById('racha-badge').textContent = "🔥 0";
-        feedback.textContent = "💡 ¡Casi! Mira la respuesta correcta en verde.";
-        feedback.className = "text-center font-extrabold text-sm text-rose-400";
+        feedbackBox.className = "rounded-2xl p-3 text-left font-bold text-xs leading-relaxed border bg-rose-950/85 border-rose-500/60 text-rose-200";
+        feedbackBox.innerHTML = `💡 <strong class="text-amber-300">Aprende el truco:</strong> ${q.explicacion || "Fíjate en la respuesta en verde. ¡La volveremos a practicar en un momento!"}`;
+
+        // Repetición espaciada: si aún no era un repaso, reinsertarla 4 lugares después
+        if (!q.esRepaso) {
+            const copiaRepaso = { ...q, esRepaso: true };
+            const posReinsercion = Math.min(progreso.indice + 4, colaPreguntas.length);
+            colaPreguntas.splice(posReinsercion, 0, copiaRepaso);
+        }
+
+        progreso.indice++;
+        actualizarHeader();
+        guardarEstado();
+
+        // Dar más tiempo (3.5 segundos) para que lea la explicación y aprenda
+        setTimeout(() => {
+            card.classList.remove('anim-error');
+            cargarPreguntaActual();
+        }, 3500);
     }
-
-    progreso.indice++;
-    actualizarHeader();
-    guardarEstado();
-
-    setTimeout(() => {
-        card.classList.remove('anim-acierto', 'anim-error');
-        cargarPreguntaActual();
-    }, 1450);
 }
 
 // --- 7. VICTORIA ---
 function finalizarBloqueNivel() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const aciertos = progreso.aciertos;
-    const aprobado = aciertos >= 30;
+    const porcentaje = Math.round((aciertos / colaPreguntas.length) * 100);
+    const aprobado = porcentaje >= 70;
 
     reproducirSonido('victoria');
     if (typeof confetti === 'function') {
@@ -397,8 +445,8 @@ function finalizarBloqueNivel() {
     }
 
     let estrellas = "⭐";
-    if (aciertos >= 38) estrellas = "⭐⭐⭐";
-    else if (aciertos >= 30) estrellas = "⭐⭐";
+    if (porcentaje >= 90) estrellas = "⭐⭐⭐";
+    else if (porcentaje >= 70) estrellas = "⭐⭐";
 
     document.getElementById('victoria-estrellas').textContent = estrellas;
 
@@ -408,11 +456,11 @@ function finalizarBloqueNivel() {
             estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
         }
         estadoJuego.monedas += 50;
-        document.getElementById('victoria-titulo').textContent = `¡Aula ${nivelJugando} Superada! 🎉`;
-        document.getElementById('victoria-detalle').textContent = `¡Felicidades Itzel! Lograste ${aciertos} de 40 aciertos y ganaste +50 monedas. ¡Ya puedes entrar a la siguiente aula!`;
+        document.getElementById('victoria-titulo').textContent = `¡Aula ${nivelJugando} Dominada! 🎉`;
+        document.getElementById('victoria-detalle').textContent = `¡Felicidades Itzel! Lograste ${aciertos} aciertos y ganaste +50 monedas. ¡Ya abriste la siguiente aula!`;
     } else {
-        document.getElementById('victoria-titulo').textContent = `¡Buen esfuerzo, Itzel! 💪`;
-        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos. Necesitas 30 para abrir la siguiente aula. ¡Inténtalo de nuevo!`;
+        document.getElementById('victoria-titulo').textContent = `¡Sigue practicando, Itzel! 💪`;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} aciertos. Necesitas al menos 70% para abrir la siguiente aula. ¡Tú puedes!`;
     }
 
     progreso.indice = 0;
@@ -423,11 +471,11 @@ function finalizarBloqueNivel() {
 
 // --- 8. PERSISTENCIA ---
 function guardarEstado() {
-    localStorage.setItem('itzel_mundo_v4', JSON.stringify(estadoJuego));
+    localStorage.setItem('itzel_mundo_v5', JSON.stringify(estadoJuego));
 }
 
 function cargarEstado() {
-    const guardado = localStorage.getItem('itzel_mundo_v4');
+    const guardado = localStorage.getItem('itzel_mundo_v5');
     if (guardado) {
         estadoJuego = JSON.parse(guardado);
     }
