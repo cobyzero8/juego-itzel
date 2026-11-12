@@ -105,29 +105,64 @@
         <div class="bg-slate-900/90 border-2 border-indigo-500/50 rounded-3xl p-6 shadow-2xl space-y-4 backdrop-blur">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-extrabold text-amber-300 uppercase tracking-wider">🏫 Aulas de la Montaña</h2>
-                <button onclick="abrirSelectorAvatar()" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-full border border-purple-500/40 text-purple-200 font-bold">
-                    Avatar 🎭
-                </button>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="abrirSelectorAvatar()" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-full border border-purple-500/40 text-purple-200 font-bold">
+                        Avatar 🎭
+                    </button>
+                    <!-- Botón discreto de acceso para Papá (Programador) -->
+                    <button onclick="abrirModalLogin()" title="Acceso Programador" class="text-[11px] bg-slate-800/80 hover:bg-slate-700 px-2 py-1 rounded-full border border-slate-600 text-slate-400">
+                        🔑
+                    </button>
+                </div>
             </div>
+
+            <!-- Panel de Desarrollador (Se activa solo al iniciar sesión como coby) -->
+            <div id="panel-dev-mapa" style="display: none;" class="bg-amber-500/15 border border-amber-400/50 rounded-2xl p-2.5 flex justify-between items-center gap-2">
+                <span class="text-[10px] font-extrabold text-amber-300 uppercase">🛠️ Modo Coby:</span>
+                <div class="flex gap-1.5">
+                    <button onclick="testDesbloquearTodo()" class="bg-amber-500/30 hover:bg-amber-500/50 text-amber-200 text-[10px] font-bold px-2 py-1 rounded-lg border border-amber-400/40">
+                        🔓 Abrir Todo
+                    </button>
+                    <button onclick="testReiniciarJuego()" class="bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 text-[10px] font-bold px-2 py-1 rounded-lg border border-rose-400/40">
+                        🔄 Reset 0
+                    </button>
+                    <button onclick="cerrarModoDev()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg">
+                        Salir
+                    </button>
+                </div>
+            </div>
+
             <p class="text-xs text-slate-300 text-left">Supera los 40 retos ilustrados de cada aula para pasar de grado:</p>
 
-            <div class="space-y-3 py-2">
+            <div class="space-y-3 py-1">
+                <!-- Aula 4 -->
+                <div id="tarjeta-nivel-4" onclick="intentarNivel(4)" class="opacity-50 bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed transition">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🏔️</span>
+                        <div class="text-left">
+                            <h3 id="titulo-nivel-4" class="font-extrabold text-sm text-slate-400">Aula 4: 4.º de Primaria</h3>
+                            <p id="subtitulo-nivel-4" class="text-[10px] text-slate-500">Bloqueado (Supera Aula 3)</p>
+                        </div>
+                    </div>
+                    <span id="badge-nivel-4" class="text-xs bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>
+                </div>
+
                 <!-- Aula 3 -->
-                <div class="opacity-50 bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed">
+                <div id="tarjeta-nivel-3" onclick="intentarNivel(3)" class="opacity-50 bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed transition">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">🏰</span>
                         <div class="text-left">
-                            <h3 class="font-extrabold text-sm text-slate-400">Aula 3: 3.º de Primaria</h3>
-                            <p class="text-[10px] text-slate-500">Completa Aula 2 para abrir</p>
+                            <h3 id="titulo-nivel-3" class="font-extrabold text-sm text-slate-400">Aula 3: 3.º de Primaria</h3>
+                            <p id="subtitulo-nivel-3" class="text-[10px] text-slate-500">Bloqueado (Supera Aula 2)</p>
                         </div>
                     </div>
-                    <span class="text-lg">🔒</span>
+                    <span id="badge-nivel-3" class="text-xs bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>
                 </div>
 
                 <!-- Aula 2 -->
                 <div id="tarjeta-nivel-2" onclick="intentarNivel(2)" class="opacity-60 bg-slate-800/90 p-4 rounded-2xl border-2 border-slate-700 flex justify-between items-center cursor-not-allowed transition">
                     <div class="flex items-center gap-3">
-                        <span id="icono-nivel-2" class="text-2xl">🌲</span>
+                        <span class="text-2xl">🌲</span>
                         <div class="text-left">
                             <h3 id="titulo-nivel-2" class="font-extrabold text-sm text-slate-300">Aula 2: 2.º de Primaria</h3>
                             <p id="subtitulo-nivel-2" class="text-[10px] text-slate-400">Bloqueado (Supera Aula 1)</p>
@@ -151,6 +186,31 @@
         </div>
     </section>
 
+    <!-- MODAL LOGIN PROGRAMADOR (Oculto por defecto) -->
+    <div id="modal-login-dev" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-amber-400/70 rounded-3xl p-6 max-w-xs w-full space-y-4 shadow-2xl text-center">
+            <div class="text-3xl">🔐</div>
+            <h3 class="text-lg font-extrabold text-amber-300">Acceso Programador</h3>
+            <p class="text-xs text-slate-300">Ingresa tus credenciales para activar el modo prueba:</p>
+            
+            <div class="space-y-2.5 text-left">
+                <input type="text" id="dev-user" placeholder="Usuario" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400">
+                <input type="password" id="dev-pass" placeholder="Contraseña" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400">
+            </div>
+
+            <p id="login-error-msg" class="text-xs font-bold text-rose-400 min-h-[16px]"></p>
+
+            <div class="flex gap-2 pt-1">
+                <button onclick="cerrarModalLogin()" class="flex-1 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-bold text-slate-300">
+                    Cancelar
+                </button>
+                <button onclick="validarLoginDev()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl text-xs font-extrabold">
+                    Entrar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- PANTALLA 3: ANIMACIÓN INTERMEDIA -->
     <section id="pantalla-animacion" class="max-w-md mx-auto w-full my-auto text-center space-y-4" style="display: none;">
         <div class="bg-slate-900/95 border-2 border-amber-400 rounded-3xl p-8 shadow-2xl space-y-4">
@@ -170,8 +230,8 @@
             <div class="flex-1 bg-slate-950 rounded-full h-3.5 border border-indigo-700 p-0.5 shadow-inner">
                 <div id="barra-exp" class="bg-gradient-to-r from-amber-400 via-pink-500 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
-            <!-- Botón de Test Rápido para saltar al final del aula -->
-            <button onclick="testCompletarNivelRapido()" title="Modo Prueba: Aprobar este nivel al instante" class="bg-amber-500/20 hover:bg-amber-500/40 border border-amber-400/60 text-[10px] px-2.5 py-1.5 rounded-xl font-extrabold text-amber-300">
+            <!-- Botón de Test Rápido (Solo visible si iniciaste sesión como coby) -->
+            <button id="btn-test-aula" style="display: none;" onclick="testCompletarNivelRapido()" class="bg-amber-500/25 hover:bg-amber-500/45 border border-amber-400/70 text-[10px] px-2.5 py-1.5 rounded-xl font-extrabold text-amber-300">
                 ⚡ Test
             </button>
         </div>
@@ -221,6 +281,8 @@
 
     <script src="datos/grado1.js"></script>
     <script src="datos/grado2.js"></script>
+    <script src="datos/grado3.js"></script>
+    <script src="datos/grado4.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
