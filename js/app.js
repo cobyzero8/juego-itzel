@@ -1,9 +1,9 @@
 /* ============================================================
-   MOTOR ANIMADO Y GAMIFICADO - MUNDO MÁGICO DE ITZEL
+   MOTOR ÉPICO PERSONALIZADO PARA ITZEL (js/app.js)
    ============================================================ */
 
 let estadoJuego = {
-    avatar: '🦸‍♀️',
+    avatar: 'foto', // Por defecto usa la foto real de Itzel
     xp: 0,
     monedas: 0,
     nivelMaxDesbloqueado: 1,
@@ -17,7 +17,7 @@ let nivelJugando = 1;
 let preguntasDelNivel = [];
 let rachaActual = 0;
 
-// --- 1. EFECTOS DE SONIDO SINTETIZADOS (Sin archivos externos) ---
+// --- 1. SONIDOS MÁGICOS ---
 function reproducirSonido(tipo) {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -26,15 +26,14 @@ function reproducirSonido(tipo) {
         osc.connect(gain);
         gain.connect(ctx.destination);
 
-        if (tipo === 'acierto') {
+        if (tipo === 'acierto' || tipo === 'entrada') {
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // Do
-            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // Mi
-            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // Sol
-            gain.gain.setValueAtTime(0.15, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            const notas = tipo === 'entrada' ? [440, 554.37, 659.25, 880] : [523.25, 659.25, 783.99];
+            notas.forEach((f, i) => osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.1));
+            gain.gain.setValueAtTime(0.16, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.55);
             osc.start();
-            osc.stop(ctx.currentTime + 0.4);
+            osc.stop(ctx.currentTime + 0.55);
         } else if (tipo === 'error') {
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(220, ctx.currentTime);
@@ -55,21 +54,36 @@ function reproducirSonido(tipo) {
     } catch (e) {}
 }
 
-// --- 2. GESTIÓN DE PANTALLAS ---
+// --- 2. NAVEGACIÓN ENTRE PANTALLAS ---
 function mostrarPantalla(idPantalla) {
-    const pantallas = ['pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
+    const pantallas = ['pantalla-portada', 'pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
     pantallas.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = (id === idPantalla) ? 'block' : 'none';
     });
+
+    const header = document.getElementById('main-header');
+    if (header) {
+        header.style.display = (idPantalla === 'pantalla-portada') ? 'none' : 'flex';
+    }
+}
+
+function entrarDesdePortada() {
+    reproducirSonido('entrada');
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+    }
+    actualizarHeader();
+    actualizarMapaVisual();
+    mostrarPantalla('pantalla-mapa');
 }
 
 function abrirSelectorAvatar() {
     mostrarPantalla('pantalla-avatar');
 }
 
-function seleccionarAvatar(emoji, elemento) {
-    estadoJuego.avatar = emoji;
+function seleccionarAvatar(tipo, elemento) {
+    estadoJuego.avatar = tipo;
     reproducirSonido('acierto');
     document.querySelectorAll('.avatar-card').forEach(c => {
         c.style.borderColor = '#334155';
@@ -93,9 +107,17 @@ function volverAlMapa() {
     mostrarPantalla('pantalla-mapa');
 }
 
-// --- 3. ACTUALIZAR CABECERA Y MAPA ---
+// --- 3. RENDERIZAR AVATAR (FOTO O EMOJI) ---
 function actualizarHeader() {
-    document.getElementById('header-avatar').textContent = estadoJuego.avatar;
+    const box = document.getElementById('header-avatar-box');
+    if (estadoJuego.avatar === 'foto') {
+        box.className = "medallon-contenedor w-12 h-12";
+        box.innerHTML = `<div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto w-12 h-12">`;
+    } else {
+        box.className = "text-3xl bg-purple-900/70 p-2 rounded-2xl border-2 border-pink-500/50";
+        box.innerHTML = `<span class="avatar-flotante">${estadoJuego.avatar}</span>`;
+    }
+
     document.getElementById('score-display').textContent = `${estadoJuego.xp} XP`;
     document.getElementById('monedas-display').textContent = `🪙 ${estadoJuego.monedas}`;
 }
@@ -103,16 +125,14 @@ function actualizarHeader() {
 function actualizarMapaVisual() {
     document.getElementById('nivel-titulo').textContent = "⛰️ Montaña del Saber";
 
-    // Mostrar progreso guardado en Nivel 1
     const p1 = estadoJuego.progresoNiveles[1];
     if (p1.completado) {
         document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Completado! (${p1.aciertos}/40 aciertos)`;
         document.getElementById('tarjeta-nivel-1').classList.remove('nodo-activo');
     } else if (p1.indice > 0) {
-        document.getElementById('subtitulo-nivel-1').textContent = `En curso: Pregunta ${p1.indice + 1} de 40`;
+        document.getElementById('subtitulo-nivel-1').textContent = `En curso: Reto ${p1.indice + 1} de 40`;
     }
 
-    // Desbloquear Nivel 2 si corresponde
     const card2 = document.getElementById('tarjeta-nivel-2');
     const p2 = estadoJuego.progresoNiveles[2];
     if (estadoJuego.nivelMaxDesbloqueado >= 2) {
@@ -121,13 +141,13 @@ function actualizarMapaVisual() {
         document.getElementById('subtitulo-nivel-2').className = "text-[10px] text-emerald-100";
         document.getElementById('subtitulo-nivel-2').textContent = p2.completado
             ? `✅ ¡Completado! (${p2.aciertos}/40 aciertos)`
-            : (p2.indice > 0 ? `En curso: Pregunta ${p2.indice + 1} de 40` : "20 Matemáticas + 20 Lectura");
+            : (p2.indice > 0 ? `En curso: Reto ${p2.indice + 1} de 40` : "20 Matemáticas + 20 Lectura");
         document.getElementById('badge-nivel-2').className = "text-xs bg-white text-emerald-900 px-3.5 py-1.5 rounded-full font-extrabold shadow";
         document.getElementById('badge-nivel-2').textContent = "¡JUGAR!";
     }
 }
 
-// --- 4. INICIAR NIVEL ---
+// --- 4. INICIAR NIVEL CON ANIMACIÓN ---
 function intentarNivel(num) {
     if (num > estadoJuego.nivelMaxDesbloqueado) {
         reproducirSonido('error');
@@ -142,16 +162,20 @@ function intentarNivel(num) {
     rachaActual = 0;
     document.getElementById('racha-badge').textContent = "🔥 0";
 
-    // Si ya había terminado el nivel y quiere rejugarlo desde cero
     if (estadoJuego.progresoNiveles[num].indice >= preguntasDelNivel.length) {
         estadoJuego.progresoNiveles[num].indice = 0;
         estadoJuego.progresoNiveles[num].aciertos = 0;
     }
 
-    // Animación de entrada
-    document.getElementById('anim-avatar-emoji').textContent = estadoJuego.avatar;
+    const animBox = document.getElementById('anim-avatar-box');
+    if (estadoJuego.avatar === 'foto') {
+        animBox.innerHTML = `<div class="medallon-contenedor w-28 h-28"><div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto w-28 h-28"></div>`;
+    } else {
+        animBox.innerHTML = `<div class="text-7xl">${estadoJuego.avatar}</div>`;
+    }
+
     document.getElementById('anim-titulo').textContent = `¡Nivel ${num}: ${num}.º de Primaria!`;
-    document.getElementById('anim-subtitulo').textContent = `¡Tú puedes, Itzel! Continuando en reto ${estadoJuego.progresoNiveles[num].indice + 1}...`;
+    document.getElementById('anim-subtitulo').textContent = `¡Vamos Itzel! Continuando en reto ${estadoJuego.progresoNiveles[num].indice + 1}...`;
     reproducirSonido('acierto');
     mostrarPantalla('pantalla-animacion');
 
@@ -162,7 +186,7 @@ function intentarNivel(num) {
     }, 1700);
 }
 
-// --- 5. MOSTRAR Y EVALUAR PREGUNTAS ---
+// --- 5. PREGUNTAS ---
 function cargarPreguntaActual() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const idx = progreso.indice;
@@ -222,7 +246,6 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
             : "🌟 ¡Genial, Itzel! Respuesta correcta +5 🪙";
         feedback.className = "text-center font-extrabold text-sm text-emerald-400";
 
-        // Lluvia suave de confeti al acertar
         if (typeof confetti === 'function') {
             confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
         }
@@ -248,7 +271,7 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
     }, 1450);
 }
 
-// --- 6. PANTALLA FINAL DE NIVEL ---
+// --- 6. VICTORIA ---
 function finalizarBloqueNivel() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const aciertos = progreso.aciertos;
@@ -272,10 +295,10 @@ function finalizarBloqueNivel() {
         }
         estadoJuego.monedas += 50;
         document.getElementById('victoria-titulo').textContent = `¡Felicidades, Itzel! 🎉`;
-        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos y ganaste +50 monedas extra. ¡Desbloqueaste el siguiente nivel en la montaña!`;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos y ganaste +50 monedas extra. ¡Desbloqueaste el siguiente nivel!`;
     } else {
         document.getElementById('victoria-titulo').textContent = `¡Buen esfuerzo, Itzel! 💪`;
-        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos. Necesitas 30 para abrir el siguiente nivel. ¡Vuelve a intentarlo!`;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos. Necesitas 30 para abrir el siguiente nivel. ¡Inténtalo de nuevo!`;
     }
 
     progreso.indice = 0;
@@ -284,22 +307,18 @@ function finalizarBloqueNivel() {
     mostrarPantalla('pantalla-victoria');
 }
 
-// --- 7. PERSISTENCIA LOCAL ---
+// --- 7. GUARDADO AUTOMÁTICO ---
 function guardarEstado() {
-    localStorage.setItem('itzel_mundo_v2', JSON.stringify(estadoJuego));
+    localStorage.setItem('itzel_mundo_v3', JSON.stringify(estadoJuego));
 }
 
 function cargarEstado() {
-    const guardado = localStorage.getItem('itzel_mundo_v2');
+    const guardado = localStorage.getItem('itzel_mundo_v3');
     if (guardado) {
         estadoJuego = JSON.parse(guardado);
-        actualizarHeader();
-        actualizarMapaVisual();
-        mostrarPantalla('pantalla-mapa');
-    } else {
-        actualizarHeader();
-        mostrarPantalla('pantalla-avatar');
     }
+    // Siempre mostramos la Portada Épica al abrir el juego para saludarla con su foto y corona
+    mostrarPantalla('pantalla-portada');
 }
 
 document.addEventListener('DOMContentLoaded', cargarEstado);
