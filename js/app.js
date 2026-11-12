@@ -60,18 +60,23 @@ function reproducirSonido(tipo) {
 
 // --- 2. LOGIN Y CONTROLES DE PROGRAMADOR (Usuario: coby / Pass: 123456pp) ---
 function abrirModalLogin() {
+    const modal = document.getElementById('modal-login-dev');
+    if (!modal) return;
+
     if (modoProgramadorActivo) {
         aplicarConfiguracionDev();
         return;
     }
+
     document.getElementById('dev-user').value = "";
     document.getElementById('dev-pass').value = "";
     document.getElementById('login-error-msg').textContent = "";
-    document.getElementById('modal-login-dev').style.display = 'flex';
+    modal.style.display = 'flex';
 }
 
 function cerrarModalLogin() {
-    document.getElementById('modal-login-dev').style.display = 'none';
+    const modal = document.getElementById('modal-login-dev');
+    if (modal) modal.style.display = 'none';
 }
 
 function validarLoginDev() {
@@ -209,7 +214,6 @@ function actualizarMapaVisual() {
         document.getElementById('subtitulo-nivel-1').textContent = `En curso: Reto ${p1.indice + 1} de 40`;
     }
 
-    // Actualizar Aulas 2, 3 y 4 dinámicamente si se desbloquean
     const coloresAula = {
         2: "from-emerald-600 to-teal-600 border-emerald-300 text-emerald-900",
         3: "from-sky-600 to-indigo-600 border-sky-300 text-sky-900",
