@@ -1,160 +1,305 @@
-let avatarSeleccionado = '🦸‍♀️';
-let preguntasDelNivel = [];
-let indicePregunta = 0;
-let aciertosTotales = 0;
-let puntosXP = 0;
+/* ============================================================
+   MOTOR ANIMADO Y GAMIFICADO - MUNDO MÁGICO DE ITZEL
+   ============================================================ */
 
-// 1. Alternar pantallas sin errores
-function mostrarPantalla(idPantalla) {
-    const listaPantallas = ['pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego'];
-    listaPantallas.forEach(id => {
-        const elemento = document.getElementById(id);
-        if (elemento) {
-            elemento.style.display = (id === idPantalla) ? 'block' : 'none';
+let estadoJuego = {
+    avatar: '🦸‍♀️',
+    xp: 0,
+    monedas: 0,
+    nivelMaxDesbloqueado: 1,
+    progresoNiveles: {
+        1: { indice: 0, aciertos: 0, completado: false },
+        2: { indice: 0, aciertos: 0, completado: false }
+    }
+};
+
+let nivelJugando = 1;
+let preguntasDelNivel = [];
+let rachaActual = 0;
+
+// --- 1. EFECTOS DE SONIDO SINTETIZADOS (Sin archivos externos) ---
+function reproducirSonido(tipo) {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (tipo === 'acierto') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // Do
+            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // Mi
+            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // Sol
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        } else if (tipo === 'error') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(220, ctx.currentTime);
+            osc.frequency.setValueAtTime(180, ctx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+        } else if (tipo === 'victoria') {
+            osc.type = 'sine';
+            const notas = [523.25, 659.25, 783.99, 1046.50];
+            notas.forEach((f, i) => osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.12));
+            gain.gain.setValueAtTime(0.18, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.65);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.65);
         }
+    } catch (e) {}
+}
+
+// --- 2. GESTIÓN DE PANTALLAS ---
+function mostrarPantalla(idPantalla) {
+    const pantallas = ['pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
+    pantallas.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === idPantalla) ? 'block' : 'none';
     });
 }
 
-// 2. Selección de Avatar
+function abrirSelectorAvatar() {
+    mostrarPantalla('pantalla-avatar');
+}
+
 function seleccionarAvatar(emoji, elemento) {
-    avatarSeleccionado = emoji;
-    const cards = document.querySelectorAll('.avatar-card');
-    cards.forEach(c => {
+    estadoJuego.avatar = emoji;
+    reproducirSonido('acierto');
+    document.querySelectorAll('.avatar-card').forEach(c => {
         c.style.borderColor = '#334155';
-        c.style.backgroundColor = '#1e293b';
+        c.style.backgroundColor = 'rgba(30, 41, 59, 0.9)';
     });
     elemento.style.borderColor = '#ec4899';
-    elemento.style.backgroundColor = 'rgba(236, 72, 153, 0.2)';
+    elemento.style.backgroundColor = 'rgba(236, 72, 153, 0.25)';
 }
 
 function confirmarAvatar() {
-    document.getElementById('header-avatar').textContent = avatarSeleccionado;
-    guardarEstadoJuego();
-
+    reproducirSonido('acierto');
+    guardarEstado();
+    actualizarHeader();
+    actualizarMapaVisual();
     mostrarPantalla('pantalla-mapa');
-    document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
 }
 
-// 3. Iniciar Nivel 1 (1.º Primaria)
-function iniciarNivel(numeroNivel) {
-    if (numeroNivel === 1) {
-        // Verificar que el objeto nivel1_Grado1 existe en datos/grado1.js
-        if (typeof nivel1_Grado1 !== 'undefined') {
-            preguntasDelNivel = [...nivel1_Grado1.matematicas, ...nivel1_Grado1.lectura];
-        } else {
-            alert("Cargando preguntas de 1.º de Primaria...");
-            return;
-        }
+function volverAlMapa() {
+    actualizarHeader();
+    actualizarMapaVisual();
+    mostrarPantalla('pantalla-mapa');
+}
 
-        // Mostrar animación
-        document.getElementById('anim-avatar-emoji').textContent = avatarSeleccionado;
-        mostrarPantalla('pantalla-animacion');
+// --- 3. ACTUALIZAR CABECERA Y MAPA ---
+function actualizarHeader() {
+    document.getElementById('header-avatar').textContent = estadoJuego.avatar;
+    document.getElementById('score-display').textContent = `${estadoJuego.xp} XP`;
+    document.getElementById('monedas-display').textContent = `🪙 ${estadoJuego.monedas}`;
+}
 
-        // Pasar al juego tras 1.8 segundos
-        setTimeout(() => {
-            mostrarPantalla('pantalla-juego');
-            document.getElementById('nivel-titulo').textContent = "⛰️ Nivel 1: 1.º Primaria";
-            cargarPreguntaActual();
-        }, 1800);
+function actualizarMapaVisual() {
+    document.getElementById('nivel-titulo').textContent = "⛰️ Montaña del Saber";
+
+    // Mostrar progreso guardado en Nivel 1
+    const p1 = estadoJuego.progresoNiveles[1];
+    if (p1.completado) {
+        document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Completado! (${p1.aciertos}/40 aciertos)`;
+        document.getElementById('tarjeta-nivel-1').classList.remove('nodo-activo');
+    } else if (p1.indice > 0) {
+        document.getElementById('subtitulo-nivel-1').textContent = `En curso: Pregunta ${p1.indice + 1} de 40`;
+    }
+
+    // Desbloquear Nivel 2 si corresponde
+    const card2 = document.getElementById('tarjeta-nivel-2');
+    const p2 = estadoJuego.progresoNiveles[2];
+    if (estadoJuego.nivelMaxDesbloqueado >= 2) {
+        card2.className = "nodo-activo cursor-pointer bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-2xl border-2 border-emerald-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+        document.getElementById('titulo-nivel-2').className = "font-extrabold text-sm text-white";
+        document.getElementById('subtitulo-nivel-2').className = "text-[10px] text-emerald-100";
+        document.getElementById('subtitulo-nivel-2').textContent = p2.completado
+            ? `✅ ¡Completado! (${p2.aciertos}/40 aciertos)`
+            : (p2.indice > 0 ? `En curso: Pregunta ${p2.indice + 1} de 40` : "20 Matemáticas + 20 Lectura");
+        document.getElementById('badge-nivel-2').className = "text-xs bg-white text-emerald-900 px-3.5 py-1.5 rounded-full font-extrabold shadow";
+        document.getElementById('badge-nivel-2').textContent = "¡JUGAR!";
     }
 }
 
-// 4. Mostrar Pregunta
-function cargarPreguntaActual() {
-    document.getElementById('feedback-msg').textContent = "";
-
-    if (indicePregunta >= preguntasDelNivel.length) {
-        alert(`🏆 ¡Felicidades Itzel! Completaste el Nivel 1 con ${aciertosTotales} aciertos de 40.`);
-        indicePregunta = 0;
-        guardarEstadoJuego();
-        mostrarPantalla('pantalla-mapa');
+// --- 4. INICIAR NIVEL ---
+function intentarNivel(num) {
+    if (num > estadoJuego.nivelMaxDesbloqueado) {
+        reproducirSonido('error');
         return;
     }
 
-    const q = preguntasDelNivel[indicePregunta];
-    const esMatematica = indicePregunta < 20;
+    const datosGrado = (num === 1) ? nivel1_Grado1 : nivel2_Grado2;
+    if (typeof datosGrado === 'undefined') return;
+
+    nivelJugando = num;
+    preguntasDelNivel = [...datosGrado.matematicas, ...datosGrado.lectura];
+    rachaActual = 0;
+    document.getElementById('racha-badge').textContent = "🔥 0";
+
+    // Si ya había terminado el nivel y quiere rejugarlo desde cero
+    if (estadoJuego.progresoNiveles[num].indice >= preguntasDelNivel.length) {
+        estadoJuego.progresoNiveles[num].indice = 0;
+        estadoJuego.progresoNiveles[num].aciertos = 0;
+    }
+
+    // Animación de entrada
+    document.getElementById('anim-avatar-emoji').textContent = estadoJuego.avatar;
+    document.getElementById('anim-titulo').textContent = `¡Nivel ${num}: ${num}.º de Primaria!`;
+    document.getElementById('anim-subtitulo').textContent = `¡Tú puedes, Itzel! Continuando en reto ${estadoJuego.progresoNiveles[num].indice + 1}...`;
+    reproducirSonido('acierto');
+    mostrarPantalla('pantalla-animacion');
+
+    setTimeout(() => {
+        mostrarPantalla('pantalla-juego');
+        document.getElementById('nivel-titulo').textContent = `⛰️ Nivel ${num}: ${num}.º Primaria`;
+        cargarPreguntaActual();
+    }, 1700);
+}
+
+// --- 5. MOSTRAR Y EVALUAR PREGUNTAS ---
+function cargarPreguntaActual() {
+    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const idx = progreso.indice;
+    document.getElementById('feedback-msg').textContent = "";
+
+    if (idx >= preguntasDelNivel.length) {
+        finalizarBloqueNivel();
+        return;
+    }
+
+    const q = preguntasDelNivel[idx];
+    const esMatematica = idx < 20;
 
     const catTag = document.getElementById('categoria-tag');
     catTag.textContent = esMatematica ? "Matemáticas 🧮" : "Comprensión Lectora 📖";
-    catTag.className = esMatematica ? "bg-emerald-600 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider" : "bg-pink-600 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider";
+    catTag.className = esMatematica
+        ? "bg-emerald-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow"
+        : "bg-pink-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow";
 
-    document.getElementById('contador-pregunta').textContent = `Pregunta ${indicePregunta + 1} de 40`;
+    document.getElementById('contador-pregunta').textContent = `Reto ${idx + 1} / 40`;
     document.getElementById('pregunta-texto').textContent = q.pregunta;
-
-    const barra = document.getElementById('barra-exp');
-    barra.style.width = `${((indicePregunta) / 40) * 100}%`;
+    document.getElementById('barra-exp').style.width = `${(idx / 40) * 100}%`;
 
     const contenedor = document.getElementById('opciones-container');
     contenedor.innerHTML = "";
 
-    q.opciones.forEach((opcion, idx) => {
+    q.opciones.forEach((opcion, i) => {
         const btn = document.createElement('button');
         btn.textContent = opcion;
-        btn.className = "w-full bg-slate-800/90 hover:bg-slate-700 border border-indigo-500/40 p-3.5 rounded-xl font-semibold transition text-slate-100 text-left px-4 text-sm";
-        btn.onclick = () => evaluarRespuesta(idx, q.correcta, btn);
+        btn.className = "btn-opcion w-full bg-slate-800/95 hover:bg-slate-700 border-2 border-indigo-500/40 p-3.5 rounded-2xl font-bold transition text-slate-100 text-left px-4 text-sm";
+        btn.onclick = () => evaluarRespuesta(i, q.correcta, btn);
         contenedor.appendChild(btn);
     });
 }
 
-// 5. Evaluar Respuesta
 function evaluarRespuesta(seleccion, correcta, btnElem) {
     const todosBotones = document.querySelectorAll('#opciones-container button');
     todosBotones.forEach(b => b.disabled = true);
 
+    const card = document.getElementById('game-card');
     const feedback = document.getElementById('feedback-msg');
+    const progreso = estadoJuego.progresoNiveles[nivelJugando];
 
     if (seleccion === correcta) {
-        btnElem.className = "w-full bg-emerald-600 border border-emerald-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
-        feedback.textContent = "🎉 ¡Excelente acierto, Itzel!";
-        feedback.className = "text-center font-bold text-base text-emerald-400";
-        aciertosTotales++;
-        puntosXP += 25;
-        document.getElementById('score-display').textContent = `${puntosXP} XP`;
+        reproducirSonido('acierto');
+        btnElem.className = "w-full bg-emerald-600 border-2 border-emerald-300 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm shadow-lg";
+        card.classList.add('anim-acierto');
+
+        rachaActual++;
+        progreso.aciertos++;
+        estadoJuego.xp += 25;
+        estadoJuego.monedas += 5;
+
+        document.getElementById('racha-badge').textContent = `🔥 ${rachaActual}`;
+        feedback.textContent = rachaActual >= 3
+            ? `🔥 ¡Súper racha de ${rachaActual}, Itzel! +5 🪙`
+            : "🌟 ¡Genial, Itzel! Respuesta correcta +5 🪙";
+        feedback.className = "text-center font-extrabold text-sm text-emerald-400";
+
+        // Lluvia suave de confeti al acertar
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
+        }
     } else {
-        btnElem.className = "w-full bg-rose-600 border border-rose-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
-        todosBotones[correcta].className = "w-full bg-emerald-700 border border-emerald-400 p-3.5 rounded-xl font-semibold text-white text-left px-4 text-sm";
-        feedback.textContent = "❌ ¡Casi! La respuesta correcta era la verde.";
-        feedback.className = "text-center font-bold text-base text-rose-400";
+        reproducirSonido('error');
+        btnElem.className = "w-full bg-rose-600 border-2 border-rose-300 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
+        todosBotones[correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
+        card.classList.add('anim-error');
+
+        rachaActual = 0;
+        document.getElementById('racha-badge').textContent = "🔥 0";
+        feedback.textContent = "💡 ¡Casi! Mira la respuesta correcta en verde.";
+        feedback.className = "text-center font-extrabold text-sm text-rose-400";
     }
 
-    indicePregunta++;
-    guardarEstadoJuego();
+    progreso.indice++;
+    actualizarHeader();
+    guardarEstado();
 
     setTimeout(() => {
+        card.classList.remove('anim-acierto', 'anim-error');
         cargarPreguntaActual();
-    }, 1500);
+    }, 1450);
 }
 
-// 6. Persistencia (Guardado en Memoria del Celular)
-function guardarEstadoJuego() {
-    const datosGuardados = {
-        avatar: avatarSeleccionado,
-        xp: puntosXP,
-        indicePregunta: indicePregunta,
-        aciertosTotales: aciertosTotales
-    };
-    localStorage.setItem('itzel_juego_datos', JSON.stringify(datosGuardados));
-}
+// --- 6. PANTALLA FINAL DE NIVEL ---
+function finalizarBloqueNivel() {
+    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const aciertos = progreso.aciertos;
+    const aprobado = aciertos >= 30;
 
-function cargarEstadoJuego() {
-    const datos = localStorage.getItem('itzel_juego_datos');
-    if (datos) {
-        const estado = JSON.parse(datos);
-        avatarSeleccionado = estado.avatar || '🦸‍♀️';
-        puntosXP = estado.xp || 0;
-        indicePregunta = estado.indicePregunta || 0;
-        aciertosTotales = estado.aciertosTotales || 0;
+    reproducirSonido('victoria');
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    }
 
-        document.getElementById('header-avatar').textContent = avatarSeleccionado;
-        document.getElementById('score-display').textContent = `${puntosXP} XP`;
+    let estrellas = "⭐";
+    if (aciertos >= 38) estrellas = "⭐⭐⭐";
+    else if (aciertos >= 30) estrellas = "⭐⭐";
 
-        mostrarPantalla('pantalla-mapa');
-        document.getElementById('nivel-titulo').textContent = "🌟 Mapa de Niveles";
+    document.getElementById('victoria-estrellas').textContent = estrellas;
+
+    if (aprobado) {
+        progreso.completado = true;
+        if (nivelJugando === estadoJuego.nivelMaxDesbloqueado) {
+            estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
+        }
+        estadoJuego.monedas += 50;
+        document.getElementById('victoria-titulo').textContent = `¡Felicidades, Itzel! 🎉`;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos y ganaste +50 monedas extra. ¡Desbloqueaste el siguiente nivel en la montaña!`;
     } else {
+        document.getElementById('victoria-titulo').textContent = `¡Buen esfuerzo, Itzel! 💪`;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos. Necesitas 30 para abrir el siguiente nivel. ¡Vuelve a intentarlo!`;
+    }
+
+    progreso.indice = 0;
+    guardarEstado();
+    actualizarHeader();
+    mostrarPantalla('pantalla-victoria');
+}
+
+// --- 7. PERSISTENCIA LOCAL ---
+function guardarEstado() {
+    localStorage.setItem('itzel_mundo_v2', JSON.stringify(estadoJuego));
+}
+
+function cargarEstado() {
+    const guardado = localStorage.getItem('itzel_mundo_v2');
+    if (guardado) {
+        estadoJuego = JSON.parse(guardado);
+        actualizarHeader();
+        actualizarMapaVisual();
+        mostrarPantalla('pantalla-mapa');
+    } else {
+        actualizarHeader();
         mostrarPantalla('pantalla-avatar');
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    cargarEstadoJuego();
-});
+document.addEventListener('DOMContentLoaded', cargarEstado);
