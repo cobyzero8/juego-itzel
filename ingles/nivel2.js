@@ -46,7 +46,7 @@ const inglesNivel2 = {
             pregunta: "¿A quiénes visitamos con mucho cariño que son los papás de nuestros papás?",
             opciones: ["A los abuelitos (Grandmother and Grandfather)", "A los vecinos", "A los profesores", "A los doctores"],
             correcta: 0,
-            pista: Llevan la palabra 'Grand' antes de mother y father.",
+            pista: "Llevan la palabra 'Grand' antes de mother y father.",
             explicacion: "'Grandmother and Grandfather' significa Abuela y Abuelo."
         },
         {
