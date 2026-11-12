@@ -1,29 +1,39 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO ADAPTATIVO PARA ITZEL (js/app.js)
-   Con Pizarra de Explicación Obligatoria al Fallar y Repetición
+   MOTOR PEDAGÓGICO ESCALABLE PARA ITZEL (js/app.js)
+   Soporta: 1.º Primaria a 5.º Secundaria, Pistas, Voz y Boleta
    ============================================================ */
 
 let modoProgramadorActivo = false;
+
+const CATALOGO_AULAS = [
+    { num: 1, titulo: "Aula 1: 1.º de Primaria", subtitulo: "Bases Visuales", icono: "⭐", varDatos: () => typeof nivel1_Grado1 !== 'undefined' ? nivel1_Grado1 : null },
+    { num: 2, titulo: "Aula 2: 2.º de Primaria", subtitulo: "Agilidad Mental", icono: "🌲", varDatos: () => typeof nivel2_Grado2 !== 'undefined' ? nivel2_Grado2 : null },
+    { num: 3, titulo: "Aula 3: 3.º de Primaria", subtitulo: "Dominio y Tablas", icono: "🏰", varDatos: () => typeof nivel3_Grado3 !== 'undefined' ? nivel3_Grado3 : null },
+    { num: 4, titulo: "Aula 4: 4.º de Primaria", subtitulo: "Fracciones y Retos", icono: "🏔️", varDatos: () => typeof nivel4_Grado4 !== 'undefined' ? nivel4_Grado4 : null },
+    { num: 5, titulo: "Aula 5: 5.º de Primaria", subtitulo: "Decimales y Lógica", icono: "🚀", varDatos: () => typeof nivel5_Grado5 !== 'undefined' ? nivel5_Grado5 : null },
+    { num: 6, titulo: "Aula 6: 6.º de Primaria", subtitulo: "Proporciones y Pre-Álgebra", icono: "👑", varDatos: () => typeof nivel6_Grado6 !== 'undefined' ? nivel6_Grado6 : null },
+    { num: 7, titulo: "Secundaria 1.º", subtitulo: "Álgebra y Ecuaciones", icono: "⚡", varDatos: () => typeof nivel7_Sec1 !== 'undefined' ? nivel7_Sec1 : null },
+    { num: 8, titulo: "Secundaria 2.º", subtitulo: "Geometría y Funciones", icono: "🔮", varDatos: () => typeof nivel8_Sec2 !== 'undefined' ? nivel8_Sec2 : null },
+    { num: 9, titulo: "Secundaria 3.º", subtitulo: "Razonamiento Avanzado", icono: "🌌", varDatos: () => typeof nivel9_Sec3 !== 'undefined' ? nivel9_Sec3 : null },
+    { num: 10, titulo: "Secundaria 4.º", subtitulo: "Trigonometría y Análisis", icono: "🔥", varDatos: () => typeof nivel10_Sec4 !== 'undefined' ? nivel10_Sec4 : null },
+    { num: 11, titulo: "Secundaria 5.º", subtitulo: "Nivel Pre-Universitario", icono: "🎓", varDatos: () => typeof nivel11_Sec5 !== 'undefined' ? nivel11_Sec5 : null }
+];
 
 let estadoJuego = {
     avatar: 'foto',
     xp: 0,
     monedas: 0,
     nivelMaxDesbloqueado: 1,
-    progresoNiveles: {
-        1: { indice: 0, aciertos: 0, completado: false },
-        2: { indice: 0, aciertos: 0, completado: false },
-        3: { indice: 0, aciertos: 0, completado: false },
-        4: { indice: 0, aciertos: 0, completado: false }
-    }
+    progresoNiveles: {}
 };
 
 let nivelJugando = 1;
 let colaPreguntas = [];
 let totalInicialAula = 30;
 let rachaActual = 0;
+let estadisticasSesion = {};
 
-// --- 1. SONIDOS MÁGICOS ---
+// --- 1. SONIDOS Y SÍNTESIS DE VOZ ---
 function reproducirSonido(tipo) {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -60,7 +70,21 @@ function reproducirSonido(tipo) {
     } catch (e) {}
 }
 
-// --- 2. LOGIN PROGRAMADOR (Usuario: coby / Pass: 123456pp) ---
+function leerRetoEnVozAlta() {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const q = colaPreguntas[progreso.indice];
+    if (!q) return;
+
+    const textoCompleto = (q.textoLectura ? q.textoLectura + ". " : "") + q.pregunta;
+    const voz = new SpeechSynthesisUtterance(textoCompleto);
+    voz.lang = 'es-PE';
+    voz.rate = 0.95;
+    window.speechSynthesis.speak(voz);
+}
+
+// --- 2. LOGIN PROGRAMADOR (coby / 123456pp) ---
 function abrirModalLogin() {
     const modal = document.getElementById('modal-login-dev');
     if (!modal) return;
@@ -110,7 +134,7 @@ function aplicarConfiguracionDev() {
 
 function testDesbloquearTodo() {
     if (!modoProgramadorActivo) return;
-    estadoJuego.nivelMaxDesbloqueado = 10;
+    estadoJuego.nivelMaxDesbloqueado = 11;
     guardarEstado();
     actualizarMapaVisual();
     reproducirSonido('acierto');
@@ -118,7 +142,7 @@ function testDesbloquearTodo() {
 
 function testReiniciarJuego() {
     if (!modoProgramadorActivo) return;
-    localStorage.removeItem('itzel_mundo_v5');
+    localStorage.removeItem('itzel_mundo_v6');
     location.reload();
 }
 
@@ -133,6 +157,7 @@ function testCompletarNivelRapido() {
 
 // --- 3. NAVEGACIÓN ---
 function mostrarPantalla(idPantalla) {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     const pantallas = ['pantalla-portada', 'pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
     pantallas.forEach(id => {
         const el = document.getElementById(id);
@@ -185,7 +210,7 @@ function volverAlMapa() {
     mostrarPantalla('pantalla-mapa');
 }
 
-// --- 4. CABECERA Y MAPA ---
+// --- 4. CABECERA Y RENDERIZADO DINÁMICO DEL MAPA ---
 function actualizarHeader() {
     const box = document.getElementById('header-avatar-box');
     if (estadoJuego.avatar === 'foto') {
@@ -202,55 +227,77 @@ function actualizarHeader() {
 
 function actualizarMapaVisual() {
     document.getElementById('nivel-titulo').textContent = "🏫 Aulas de Aprendizaje";
+    const contenedor = document.getElementById('lista-aulas-container');
+    if (!contenedor) return;
+    contenedor.innerHTML = "";
 
-    const p1 = estadoJuego.progresoNiveles[1];
-    if (p1 && p1.completado) {
-        document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Dominada! (${p1.aciertos} aciertos)`;
-        document.getElementById('tarjeta-nivel-1').classList.remove('nodo-activo');
-    }
+    // Mostrar aulas ordenadas de arriba hacia abajo (de mayor a menor como montaña)
+    const aulasOrdenadas = [...CATALOGO_AULAS].reverse();
 
-    const coloresAula = {
-        2: "from-emerald-600 to-teal-600 border-emerald-300 text-emerald-900",
-        3: "from-sky-600 to-indigo-600 border-sky-300 text-sky-900",
-        4: "from-amber-500 to-orange-600 border-amber-300 text-amber-950"
-    };
+    aulasOrdenadas.forEach(aula => {
+        const desbloqueado = estadoJuego.nivelMaxDesbloqueado >= aula.num;
+        const tieneContenido = aula.varDatos() !== null;
+        const prog = estadoJuego.progresoNiveles[aula.num] || { indice: 0, aciertos: 0, completado: false };
 
-    [2, 3, 4].forEach(num => {
-        const card = document.getElementById(`tarjeta-nivel-${num}`);
-        if (!card) return;
-        const prog = estadoJuego.progresoNiveles[num] || { indice: 0, aciertos: 0, completado: false };
+        const div = document.createElement('div');
+        div.onclick = () => intentarNivel(aula.num);
 
-        if (estadoJuego.nivelMaxDesbloqueado >= num) {
-            const estilos = coloresAula[num].split(' ');
-            card.className = `nodo-activo cursor-pointer bg-gradient-to-r ${estilos[0]} ${estilos[1]} p-4 rounded-2xl border-2 ${estilos[2]} flex justify-between items-center shadow-lg transform active:scale-95 transition`;
-            document.getElementById(`titulo-nivel-${num}`).className = "font-extrabold text-sm text-white";
-            document.getElementById(`subtitulo-nivel-${num}`).className = "text-[10px] text-white/90";
-            document.getElementById(`subtitulo-nivel-${num}`).textContent = prog.completado
-                ? `✅ ¡Dominada! (${prog.aciertos} aciertos)`
-                : "Suma, Resta, Mult., Div., Raz. y Lectura";
-            document.getElementById(`badge-nivel-${num}`).className = `text-xs bg-white ${estilos[3]} px-3.5 py-1.5 rounded-full font-extrabold shadow`;
-            document.getElementById(`badge-nivel-${num}`).textContent = "¡ENTRAR!";
+        if (desbloqueado && tieneContenido) {
+            const esActual = (aula.num === estadoJuego.nivelMaxDesbloqueado && !prog.completado);
+            div.className = `${esActual ? 'nodo-activo' : ''} cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-pink-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition`;
+            div.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">${aula.icono}</span>
+                    <div class="text-left">
+                        <h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3>
+                        <p class="text-[10px] text-pink-100">${prog.completado ? `✅ ¡Dominada! (${prog.aciertos} aciertos)` : aula.subtitulo}</p>
+                    </div>
+                </div>
+                <span class="text-xs bg-white text-purple-900 px-3 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>
+            `;
+        } else if (!tieneContenido) {
+            div.className = "opacity-40 bg-slate-800/60 p-3 rounded-2xl border border-slate-700/70 flex justify-between items-center cursor-not-allowed";
+            div.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">${aula.icono}</span>
+                    <div class="text-left">
+                        <h3 class="font-bold text-xs text-slate-400">${aula.titulo}</h3>
+                        <p class="text-[10px] text-slate-500">Próximamente en construcción</p>
+                    </div>
+                </div>
+                <span class="text-[10px] bg-slate-800 px-2.5 py-1 rounded-full text-slate-500 font-bold">Pronto</span>
+            `;
+        } else {
+            div.className = "opacity-60 bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed";
+            div.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">${aula.icono}</span>
+                    <div class="text-left">
+                        <h3 class="font-extrabold text-sm text-slate-300">${aula.titulo}</h3>
+                        <p class="text-[10px] text-slate-400">Supera el Aula ${aula.num - 1} para abrir</p>
+                    </div>
+                </div>
+                <span class="text-xs bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>
+            `;
         }
+
+        contenedor.appendChild(div);
     });
 }
 
 // --- 5. INICIAR AULA ---
 function intentarNivel(num) {
-    if (num > estadoJuego.nivelMaxDesbloqueado) {
+    const aulaInfo = CATALOGO_AULAS.find(a => a.num === num);
+    if (!aulaInfo) return;
+
+    const datosGrado = aulaInfo.varDatos();
+    if (!datosGrado) {
         reproducirSonido('error');
         return;
     }
 
-    const mapaDatos = {
-        1: typeof nivel1_Grado1 !== 'undefined' ? nivel1_Grado1 : null,
-        2: typeof nivel2_Grado2 !== 'undefined' ? nivel2_Grado2 : null,
-        3: typeof nivel3_Grado3 !== 'undefined' ? nivel3_Grado3 : null,
-        4: typeof nivel4_Grado4 !== 'undefined' ? nivel4_Grado4 : null
-    };
-
-    const datosGrado = mapaDatos[num];
-    if (!datosGrado) {
-        alert(`El Aula ${num} se está preparando. ¡Vamos a llenarla!`);
+    if (num > estadoJuego.nivelMaxDesbloqueado) {
+        reproducirSonido('error');
         return;
     }
 
@@ -262,6 +309,7 @@ function intentarNivel(num) {
     colaPreguntas = [...datosGrado.matematicas, ...datosGrado.lectura];
     totalInicialAula = colaPreguntas.length;
     rachaActual = 0;
+    estadisticasSesion = {};
 
     if (estadoJuego.progresoNiveles[num].indice >= colaPreguntas.length) {
         estadoJuego.progresoNiveles[num].indice = 0;
@@ -275,19 +323,19 @@ function intentarNivel(num) {
         animBox.innerHTML = `<div class="text-7xl">${estadoJuego.avatar}</div>`;
     }
 
-    document.getElementById('anim-titulo').textContent = `¡Aula ${num}: ${datosGrado.nombre}!`;
-    document.getElementById('anim-subtitulo').textContent = `¡Vamos Itzel! Usa las Pistas Mágicas si necesitas ayuda.`;
+    document.getElementById('anim-titulo').textContent = `¡${aulaInfo.titulo}!`;
+    document.getElementById('anim-subtitulo').textContent = `${aulaInfo.subtitulo} • ¡Tú puedes, Itzel!`;
     reproducirSonido('acierto');
     mostrarPantalla('pantalla-animacion');
 
     setTimeout(() => {
         mostrarPantalla('pantalla-juego');
-        document.getElementById('nivel-titulo').textContent = `🏫 Aula ${num}`;
+        document.getElementById('nivel-titulo').textContent = `🏫 ${aulaInfo.titulo}`;
         cargarPreguntaActual();
     }, 1500);
 }
 
-// --- 6. PREGUNTAS CON PISTA, LECTURA LARGA Y ESCENARIO VISUAL ---
+// --- 6. PREGUNTAS ---
 function cargarPreguntaActual() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const idx = progreso.indice;
@@ -301,9 +349,10 @@ function cargarPreguntaActual() {
     }
 
     const q = colaPreguntas[idx];
+    const areaNombre = q.area || (q.textoLectura ? "Lectura 📖" : "Matemáticas 🧮");
 
     const catTag = document.getElementById('categoria-tag');
-    catTag.textContent = q.area || (q.textoLectura ? "Lectura 📖" : "Matemáticas 🧮");
+    catTag.textContent = areaNombre;
 
     const coloresArea = {
         "Suma ➕": "bg-emerald-600",
@@ -313,8 +362,7 @@ function cargarPreguntaActual() {
         "Razonamiento 🧠": "bg-amber-600",
         "Lectura 📖": "bg-pink-600"
     };
-    const bgClase = coloresArea[q.area] || "bg-emerald-600";
-    catTag.className = `${bgClase} text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow`;
+    catTag.className = `${coloresArea[areaNombre] || "bg-emerald-600"} text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow`;
 
     document.getElementById('texto-pista').textContent = q.pista || "Lee con calma los datos del problema y resuelve paso a paso.";
 
@@ -333,7 +381,7 @@ function cargarPreguntaActual() {
         cajaLectura.style.display = 'none';
     }
 
-    document.getElementById('contador-pregunta').textContent = `Reto ${idx + 1} / ${colaPreguntas.length}`;
+    document.getElementById('contador-pregunta').textContent = `${idx + 1} / ${colaPreguntas.length}`;
     document.getElementById('pregunta-texto').textContent = q.pregunta;
     document.getElementById('barra-exp').style.width = `${(idx / colaPreguntas.length) * 100}%`;
 
@@ -366,12 +414,19 @@ function avanzarSiguienteDespuesDeError() {
 }
 
 function evaluarRespuesta(seleccion, q, btnElem) {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     const todosBotones = document.querySelectorAll('#opciones-container button');
     todosBotones.forEach(b => b.disabled = true);
 
     const card = document.getElementById('game-card');
     const feedbackBox = document.getElementById('feedback-box');
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const areaNombre = q.area || "General";
+
+    if (!estadisticasSesion[areaNombre]) {
+        estadisticasSesion[areaNombre] = { total: 0, ok: 0 };
+    }
+    estadisticasSesion[areaNombre].total++;
 
     feedbackBox.style.display = 'block';
 
@@ -382,6 +437,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
 
         rachaActual++;
         progreso.aciertos++;
+        estadisticasSesion[areaNombre].ok++;
         estadoJuego.xp += 30;
         estadoJuego.monedas += 5;
 
@@ -404,14 +460,13 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         }, 1400);
 
     } else {
-        // ERROR: Mostrar explicación detallada y esperar a que Itzel toque "Entendido"
         reproducirSonido('error');
         btnElem.className = "w-full bg-rose-600 border-2 border-rose-300 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
         todosBotones[q.correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
         card.classList.add('anim-error');
 
         rachaActual = 0;
-        const explicacionTexto = q.explicacion || `La respuesta correcta es "${q.opciones[q.correcta]}". ¡Fíjate bien porque la volveremos a practicar!`;
+        const explicacionTexto = q.explicacion || `La respuesta correcta es "${q.opciones[q.correcta]}".`;
 
         feedbackBox.className = "rounded-2xl p-4 text-left font-bold text-xs leading-relaxed border-2 bg-rose-950/90 border-amber-400/70 text-rose-100 space-y-3 shadow-xl";
         feedbackBox.innerHTML = `
@@ -422,7 +477,6 @@ function evaluarRespuesta(seleccion, q, btnElem) {
             </button>
         `;
 
-        // Repetición espaciada: reinsertar 4 lugares después
         if (!q.esRepaso) {
             const copiaRepaso = { ...q, esRepaso: true };
             const posReinsercion = Math.min(progreso.indice + 4, colaPreguntas.length);
@@ -435,7 +489,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
     }
 }
 
-// --- 7. VICTORIA ---
+// --- 7. VICTORIA Y BOLETA DE RENDIMIENTO ---
 function finalizarBloqueNivel() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const aciertos = progreso.aciertos;
@@ -453,6 +507,22 @@ function finalizarBloqueNivel() {
 
     document.getElementById('victoria-estrellas').textContent = estrellas;
 
+    // Generar Boleta de Dominio por Área
+    const boletaDiv = document.getElementById('boleta-areas');
+    const areasKeys = Object.keys(estadisticasSesion);
+    if (areasKeys.length > 0) {
+        boletaDiv.style.display = 'block';
+        boletaDiv.innerHTML = `<div class="font-extrabold text-amber-300 uppercase text-[10px] mb-1">📊 Boleta de Aprendizaje:</div>` +
+            areasKeys.map(area => {
+                const st = estadisticasSesion[area];
+                const pct = Math.round((st.ok / st.total) * 100);
+                const color = pct >= 75 ? 'text-emerald-400' : 'text-amber-300';
+                return `<div class="flex justify-between"><span>${area}</span><span class="font-extrabold ${color}">${st.ok}/${st.total} (${pct}%)</span></div>`;
+            }).join('');
+    } else {
+        boletaDiv.style.display = 'none';
+    }
+
     if (aprobado) {
         progreso.completado = true;
         if (nivelJugando === estadoJuego.nivelMaxDesbloqueado) {
@@ -463,7 +533,7 @@ function finalizarBloqueNivel() {
         document.getElementById('victoria-detalle').textContent = `¡Felicidades Itzel! Lograste ${aciertos} aciertos y ganaste +50 monedas. ¡Ya abriste la siguiente aula!`;
     } else {
         document.getElementById('victoria-titulo').textContent = `¡Sigue practicando, Itzel! 💪`;
-        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} aciertos. Necesitas al menos 70% para abrir la siguiente aula. ¡Tú puedes!`;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} aciertos. Necesitas al menos 70% para abrir la siguiente aula.`;
     }
 
     progreso.indice = 0;
@@ -474,11 +544,11 @@ function finalizarBloqueNivel() {
 
 // --- 8. PERSISTENCIA ---
 function guardarEstado() {
-    localStorage.setItem('itzel_mundo_v5', JSON.stringify(estadoJuego));
+    localStorage.setItem('itzel_mundo_v6', JSON.stringify(estadoJuego));
 }
 
 function cargarEstado() {
-    const guardado = localStorage.getItem('itzel_mundo_v5');
+    const guardado = localStorage.getItem('itzel_mundo_v6');
     if (guardado) {
         estadoJuego = JSON.parse(guardado);
     }
