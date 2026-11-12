@@ -1,7 +1,5 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO DUAL PARA ITZEL (js/app.js)
-   Mundo 1: Matemáticas y Lectura (11 Grados)
-   Mundo 2: Academia de Inglés con Voz (Basic -> Pro, 8 Niveles)
+   MOTOR PEDAGÓGICO DUAL CON META DE PAPÁ (js/app.js)
    ============================================================ */
 
 let modoProgramadorActivo = false;
@@ -23,13 +21,13 @@ const CATALOGO_MATE = [
 
 const CATALOGO_INGLES = [
     { num: 1, titulo: "Level 1: Starter Kids", subtitulo: "Saludos, Colores y Animales", icono: "🧸", varDatos: () => (typeof inglesNivel1 !== 'undefined') ? inglesNivel1 : null },
-    { num: 2, titulo: "Level 2: Basic A1", subtitulo: "Familia, Verbo To Be y Números", icono: "🌱", varDatos: () => (typeof inglesNivel2 !== 'undefined') ? inglesNivel2 : null },
+    { num: 2, titulo: "Level 2: Basic A1", subtitulo: "Familia y Presentación", icono: "🌱", varDatos: () => (typeof inglesNivel2 !== 'undefined') ? inglesNivel2 : null },
     { num: 3, titulo: "Level 3: Elementary A2", subtitulo: "Rutinas, Hora y Ciudad", icono: "🚲", varDatos: () => (typeof inglesNivel3 !== 'undefined') ? inglesNivel3 : null },
-    { num: 4, titulo: "Level 4: Pre-Intermediate B1", subtitulo: "Pasado Simple e Historias", icono: "✈️", varDatos: () => (typeof inglesNivel4 !== 'undefined') ? inglesNivel4 : null },
-    { num: 5, titulo: "Level 5: Intermediate B1+", subtitulo: "Futuro, Ciencia y Cultura", icono: "🌍", varDatos: () => (typeof inglesNivel5 !== 'undefined') ? inglesNivel5 : null },
-    { num: 6, titulo: "Level 6: Upper-Intermediate B2", subtitulo: "Phrasal Verbs y Condicionales", icono: "🎯", varDatos: () => (typeof inglesNivel6 !== 'undefined') ? inglesNivel6 : null },
-    { num: 7, titulo: "Level 7: Advanced C1", subtitulo: "Lectura Académica y Debates", icono: "🏛️", varDatos: () => (typeof inglesNivel7 !== 'undefined') ? inglesNivel7 : null },
-    { num: 8, titulo: "Level 8: Mastery Pro C2", subtitulo: "Fluidez Nativa y Modismos", icono: "👑", varDatos: () => (typeof inglesNivel8 !== 'undefined') ? inglesNivel8 : null }
+    { num: 4, titulo: "Level 4: Pre-Intermediate B1", subtitulo: "Pasado e Historias", icono: "✈️", varDatos: () => (typeof inglesNivel4 !== 'undefined') ? inglesNivel4 : null },
+    { num: 5, titulo: "Level 5: Intermediate B1+", subtitulo: "Ciencia y Futuro", icono: "🌍", varDatos: () => (typeof inglesNivel5 !== 'undefined') ? inglesNivel5 : null },
+    { num: 6, titulo: "Level 6: Upper-Intermediate B2", subtitulo: "Expresiones Prácticas", icono: "🎯", varDatos: () => (typeof inglesNivel6 !== 'undefined') ? inglesNivel6 : null },
+    { num: 7, titulo: "Level 7: Advanced C1", subtitulo: "Lectura Crítica", icono: "🏛️", varDatos: () => (typeof inglesNivel7 !== 'undefined') ? inglesNivel7 : null },
+    { num: 8, titulo: "Level 8: Mastery Pro C2", subtitulo: "Cima y Fluidez Total", icono: "👑", varDatos: () => (typeof inglesNivel8 !== 'undefined') ? inglesNivel8 : null }
 ];
 
 let estadoJuego = {
@@ -48,7 +46,7 @@ let totalInicialAula = 30;
 let rachaActual = 0;
 let estadisticasSesion = {};
 
-// --- 1. SONIDOS Y VOZ (ESPAÑOL E INGLÉS NATIVO) ---
+// --- 1. SONIDOS Y VOZ ---
 function reproducirSonido(tipo) {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -128,7 +126,7 @@ function practicarVozIngles() {
     if (!SpeechRec) {
         resEl.style.display = 'block';
         resEl.className = "text-[11px] font-bold pt-1 text-amber-300";
-        resEl.textContent = "⚠️ Tu navegador no soporta micrófono aquí. ¡Usa los botones 🔊 Normal y 🐢 Lento y repítelo en voz alta!";
+        resEl.textContent = "⚠️ Tu navegador no soporta micrófono aquí. ¡Usa 🔊 Normal / 🐢 Lento y repítelo en voz alta!";
         return;
     }
 
@@ -156,14 +154,14 @@ function practicarVozIngles() {
             resEl.textContent = `🌟 ¡Excelente pronunciación! Dijiste: "${event.results[0][0].transcript}"`;
         } else {
             resEl.className = "text-[11px] font-bold pt-1 text-amber-300";
-            resEl.textContent = `🗣️ Escuché: "${event.results[0][0].transcript}". ¡Escucha 🐢 Lento e inténtalo otra vez!`;
+            resEl.textContent = `🗣️ Escuché: "${event.results[0][0].transcript}". ¡Prueba otra vez con 🐢 Lento!`;
         }
     };
 
     recognition.onerror = () => {
         resEl.classList.remove('animate-pulse');
         resEl.className = "text-[11px] font-bold pt-1 text-rose-300";
-        resEl.textContent = "⚠️ No se detectó voz. Revisa el permiso de micrófono o practica escuchando 🔊.";
+        resEl.textContent = "⚠️ No se detectó voz. Revisa tu micrófono o practica escuchando 🔊.";
     };
 
     recognition.start();
@@ -242,7 +240,46 @@ function testCompletarNivelRapido() {
     finalizarBloqueNivel();
 }
 
-// --- 3. NAVEGACIÓN Y CAMBIO DE MUNDO ---
+// --- 3. CÁLCULO DE PROGRESO Y META DE PAPÁ ---
+function calcularProgresoTotal() {
+    let completadosMate = 0;
+    for (let i = 1; i <= 11; i++) {
+        if (estadoJuego.progresoNiveles[i] && estadoJuego.progresoNiveles[i].completado) completadosMate++;
+    }
+    let completadosIngles = 0;
+    for (let i = 1; i <= 8; i++) {
+        if (estadoJuego.progresoIngles[i] && estadoJuego.progresoIngles[i].completado) completadosIngles++;
+    }
+    return { mate: completadosMate, ingles: completadosIngles, totalCompletados: completadosMate + completadosIngles, totalMundos: 19 };
+}
+
+function abrirPremioFinal() {
+    reproducirSonido('acierto');
+    mostrarPantalla('pantalla-premio-final');
+    const prog = calcularProgresoTotal();
+    const contenido = document.getElementById('contenido-cofre-meta');
+
+    if (prog.totalCompletados >= prog.totalMundos) {
+        contenido.innerHTML = `
+            <p class="text-amber-300 font-black text-base">🎉 ¡FELICIDADES, ITZEL! ¡LO LOGRASTE! 🎉</p>
+            <p>Has completado las 11 aulas de Matemáticas/Lectura y los 8 niveles de Inglés con un esfuerzo increíble.</p>
+            <p class="bg-pink-950/80 p-3 rounded-xl border border-pink-400 text-pink-200 font-bold mt-2">
+                👑 <strong>MENSAJE ESPECIAL DE PAPÁ (Coby):</strong><br>
+                "¡Estoy súper orgulloso de ti, mi amor! Has demostrado ser una campeona muy inteligente y dedicada. Como cumpliste tu gran objetivo, ¡dime ahora mismo qué regalo deseas que te compre! Te amo muchísimo." ❤️
+            </p>
+        `;
+    } else {
+        const faltantes = prog.totalMundos - prog.totalCompletados;
+        contenido.innerHTML = `
+            <p class="text-amber-300 font-black text-sm">🔒 ¡El Cofre del Regalo de Papá está casi listo!</p>
+            <p>Has completado <strong class="text-emerald-400">${prog.totalCompletados} de 19</strong> mundos en total.</p>
+            <p class="text-pink-300 font-bold mt-1">✨ Te faltan <strong class="text-amber-400">${faltantes} aulas/niveles</strong> para abrir este cofre y pedirle a papá el regalo de tus sueños.</p>
+            <p class="text-slate-400 text-xs mt-2">¡Sigue jugando todos los días, guarda tu avance y llega hasta la meta final!</p>
+        `;
+    }
+}
+
+// --- 4. NAVEGACIÓN Y CAMBIO DE MUNDO ---
 function cambiarMundo(nuevoMundo) {
     mundoActivo = nuevoMundo;
     reproducirSonido('acierto');
@@ -269,7 +306,7 @@ function mostrarPantalla(idPantalla) {
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     } catch (e) {}
 
-    const pantallas = ['pantalla-portada', 'pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
+    const pantallas = ['pantalla-portada', 'pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria', 'pantalla-premio-final'];
     pantallas.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = (id === idPantalla) ? 'block' : 'none';
@@ -324,7 +361,7 @@ function volverAlMapa() {
     actualizarMapaVisual();
 }
 
-// --- 4. CABECERA Y MAPA DINÁMICO ---
+// --- 5. CABECERA Y MAPA DINÁMICO ---
 function actualizarHeader() {
     const box = document.getElementById('header-avatar-box');
     if (box) {
@@ -347,6 +384,16 @@ function actualizarMapaVisual() {
     const tituloEl = document.getElementById('nivel-titulo');
     if (tituloEl) {
         tituloEl.textContent = (mundoActivo === 'ingles') ? "🇺🇸 Academia de Inglés" : "🏫 Mate y Lectura";
+    }
+
+    const progTotal = calcularProgresoTotal();
+    const textoMeta = document.getElementById('estado-meta-texto');
+    if (textoMeta) {
+        if (progTotal.totalCompletados >= progTotal.totalMundos) {
+            textoMeta.textContent = "¡Cofre abierto! ¡Pídele tu regalo a Papá! 🎁";
+        } else {
+            textoMeta.textContent = `Te faltan ${progTotal.totalMundos - progTotal.totalCompletados} mundos para tu regalo ✨`;
+        }
     }
 
     const contenedor = document.getElementById('lista-aulas-container');
@@ -398,7 +445,7 @@ function actualizarMapaVisual() {
                         <span class="text-2xl">💪</span>
                         <div class="text-left">
                             <h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3>
-                            <p class="text-[10px] text-amber-100 font-bold">Logrado: ${prog.mejorNota}/${prog.mejorTotal} • ¡Inténtalo nuevamente!</p>
+                            <p class="text-[10px] text-amber-100 font-bold">Logrado: ${prog.mejorNota}/${prog.mejorTotal} • ¡Inténtalo otra vez!</p>
                         </div>
                     </div>
                     <span class="text-[11px] bg-white text-orange-950 px-3 py-1.5 rounded-full font-extrabold shadow">Reintentar</span>
@@ -461,7 +508,7 @@ function actualizarMapaVisual() {
     });
 }
 
-// --- 5. INICIAR AULA ---
+// --- 6. INICIAR AULA ---
 function intentarNivel(num) {
     const catalogo = (mundoActivo === 'ingles') ? CATALOGO_INGLES : CATALOGO_MATE;
     const maxDesb = (mundoActivo === 'ingles') ? estadoJuego.inglesMaxDesbloqueado : estadoJuego.nivelMaxDesbloqueado;
@@ -519,7 +566,7 @@ function intentarNivel(num) {
     }, 1400);
 }
 
-// --- 6. PREGUNTAS ---
+// --- 7. PREGUNTAS ---
 function cargarPreguntaActual() {
     const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
     const progreso = mapaProgreso[nivelJugando];
@@ -562,7 +609,6 @@ function cargarPreguntaActual() {
     escenaCaja.classList.add('escena-visual');
     escenaDibujo.textContent = q.dibujo || "🌟 ✨ 📚 ✨ 🌟";
 
-    // Panel especial de Inglés con Audio
     const panelIngles = document.getElementById('panel-audio-ingles');
     const resMic = document.getElementById('resultado-mic-ingles');
     if (mundoActivo === 'ingles' && q.audioIngles) {
@@ -697,7 +743,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
     }
 }
 
-// --- 7. VICTORIA Y BOLETA ---
+// --- 8. VICTORIA Y MENSAJE DINÁMICO DE PAPÁ ---
 function finalizarBloqueNivel() {
     const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
     const progreso = mapaProgreso[nivelJugando];
@@ -717,6 +763,45 @@ function finalizarBloqueNivel() {
 
     document.getElementById('victoria-estrellas').textContent = estrellas;
 
+    const progTotal = calcularProgresoTotal();
+    const mensajeDinamico = document.getElementById('mensaje-dinamico-meta');
+
+    if (aprobado) {
+        progreso.completado = true;
+        progreso.estrellas = estrellas;
+        if (mundoActivo === 'ingles') {
+            if (nivelJugando === estadoJuego.inglesMaxDesbloqueado) {
+                estadoJuego.inglesMaxDesbloqueado = nivelJugando + 1;
+            }
+        } else {
+            if (nivelJugando === estadoJuego.nivelMaxDesbloqueado) {
+                estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
+            }
+        }
+        estadoJuego.monedas += 50;
+        reproducirSonido('victoria');
+        try {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+        } catch (e) {}
+
+        document.getElementById('victoria-titulo').textContent = `¡Aula ${nivelJugando} Superada! 🎉`;
+        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). ¡Ganaste +50 monedas y abriste el siguiente nivel!`;
+    } else {
+        reproducirSonido('error');
+        document.getElementById('victoria-titulo').textContent = `¡Casi lo logras, Itzel! 💪`;
+        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). Necesitas 70% para aprobar. ¡Inténtalo otra vez!`;
+    }
+
+    // MENSAJE DINÁMICO DE PAPÁ SOBRE CUÁNTO FALTA
+    const mundosFaltantes = progTotal.totalMundos - progTotal.totalCompletados;
+    if (mundosFaltantes <= 0) {
+        mensajeDinamico.innerHTML = `👑 <strong>¡INCREÍBLE, ITZEL! ¡Completaste todos los mundos de la academia!</strong><br>Ve corriendo a buscar a Papá (Coby), ¡ya ganaste tu gran premio final y el regalo de tus sueños! ❤️`;
+    } else {
+        mensajeDinamico.innerHTML = `🎁 <strong>¡Mensaje de Papá!</strong><br>Vas genial. Ya completaste ${progTotal.totalCompletados} mundos y <strong>te faltan solo ${mundosFaltantes} aulas o niveles</strong> para terminar todo y pedirme tu regalo especial. ¡Tú puedes!`;
+    }
+
     const boletaDiv = document.getElementById('boleta-areas');
     const areasKeys = Object.keys(estadisticasSesion);
     if (boletaDiv && areasKeys.length > 0) {
@@ -732,41 +817,13 @@ function finalizarBloqueNivel() {
         boletaDiv.style.display = 'none';
     }
 
-    if (aprobado) {
-        reproducirSonido('victoria');
-        try {
-            if (typeof confetti === 'function') {
-                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-            }
-        } catch (e) {}
-
-        progreso.completado = true;
-        progreso.estrellas = estrellas;
-        if (mundoActivo === 'ingles') {
-            if (nivelJugando === estadoJuego.inglesMaxDesbloqueado) {
-                estadoJuego.inglesMaxDesbloqueado = nivelJugando + 1;
-            }
-        } else {
-            if (nivelJugando === estadoJuego.nivelMaxDesbloqueado) {
-                estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
-            }
-        }
-        estadoJuego.monedas += 50;
-        document.getElementById('victoria-titulo').textContent = `¡Nivel ${nivelJugando} Superado! 🎉`;
-        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). ¡Ganaste +50 monedas y abriste el siguiente nivel!`;
-    } else {
-        reproducirSonido('error');
-        document.getElementById('victoria-titulo').textContent = `¡Casi lo logras, Itzel! 💪`;
-        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). Necesitas al menos 70% para avanzar. ¡Inténtalo nuevamente!`;
-    }
-
     progreso.indice = 0;
     guardarEstado();
     actualizarHeader();
     mostrarPantalla('pantalla-victoria');
 }
 
-// --- 8. PERSISTENCIA ---
+// --- 9. PERSISTENCIA ---
 function guardarEstado() {
     try {
         localStorage.setItem('itzel_mundo_v6', JSON.stringify(estadoJuego));
