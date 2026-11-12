@@ -1,5 +1,6 @@
 /* ============================================================
    MOTOR PEDAGÓGICO BLINDADO Y ESCALABLE PARA ITZEL (js/app.js)
+   Con Estados Visuales de Progreso, Puntaje y Reintento en Mapa
    ============================================================ */
 
 let modoProgramadorActivo = false;
@@ -156,7 +157,7 @@ function testCompletarNivelRapido() {
     finalizarBloqueNivel();
 }
 
-// --- 3. NAVEGACIÓN BLINDADA ---
+// --- 3. NAVEGACIÓN ---
 function mostrarPantalla(idPantalla) {
     try {
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -183,7 +184,6 @@ function entrarDesdePortada() {
         }
     } catch (e) {}
 
-    // Cambiamos de pantalla primero para garantizar respuesta inmediata
     mostrarPantalla('pantalla-mapa');
     actualizarHeader();
     actualizarMapaVisual();
@@ -218,7 +218,7 @@ function volverAlMapa() {
     actualizarMapaVisual();
 }
 
-// --- 4. CABECERA Y RENDERIZADO DINÁMICO DEL MAPA ---
+// --- 4. CABECERA Y RENDERIZADO VISUAL DE ESTADOS EN EL MAPA ---
 function actualizarHeader() {
     const box = document.getElementById('header-avatar-box');
     if (box) {
@@ -259,24 +259,69 @@ function actualizarMapaVisual() {
 
         const desbloqueado = (estadoJuego.nivelMaxDesbloqueado || 1) >= aula.num;
         const tieneContenido = datosAula !== null && Array.isArray(datosAula.matematicas);
-        const prog = estadoJuego.progresoNiveles[aula.num] || { indice: 0, aciertos: 0, completado: false };
+        const totalRetos = tieneContenido ? (datosAula.matematicas.length + (datosAula.lectura ? datosAula.lectura.length : 0)) : 30;
+        const prog = estadoJuego.progresoNiveles[aula.num] || { indice: 0, aciertos: 0, completado: false, mejorNota: null, mejorTotal: totalRetos, estrellas: "" };
 
         const div = document.createElement('div');
         div.onclick = () => intentarNivel(aula.num);
 
         if (desbloqueado && tieneContenido) {
-            const esActual = (aula.num === estadoJuego.nivelMaxDesbloqueado && !prog.completado);
-            div.className = `${esActual ? 'nodo-activo' : ''} cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-pink-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition`;
-            div.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">${aula.icono}</span>
-                    <div class="text-left">
-                        <h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3>
-                        <p class="text-[10px] text-pink-100">${prog.completado ? `✅ ¡Dominada! (${prog.aciertos} aciertos)` : aula.subtitulo}</p>
+            // 1. AULA YA APROBADA (VERDE ESMERALDA CON ESTRELLAS)
+            if (prog.completado) {
+                div.className = "cursor-pointer bg-gradient-to-r from-emerald-700 to-teal-700 p-3.5 rounded-2xl border-2 border-emerald-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">✅</span>
+                        <div class="text-left">
+                            <h3 class="font-extrabold text-sm text-white flex items-center gap-1.5">${aula.titulo} <span class="text-xs">${prog.estrellas || '⭐⭐'}</span></h3>
+                            <p class="text-[10px] text-emerald-100 font-bold">Logrado: ${prog.mejorNota || prog.aciertos}/${prog.mejorTotal || totalRetos} aciertos</p>
+                        </div>
                     </div>
-                </div>
-                <span class="text-xs bg-white text-purple-900 px-3 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>
-            `;
+                    <span class="text-[11px] bg-emerald-950/70 text-emerald-200 border border-emerald-300/50 px-3 py-1.5 rounded-full font-extrabold">Repasar 🔄</span>
+                `;
+            }
+            // 2. AULA INTENTADA PERO NO APROBADA (< 70% - PIDE REINTENTO)
+            else if (prog.mejorNota !== null && prog.mejorNota !== undefined && prog.indice === 0) {
+                div.className = "nodo-activo cursor-pointer bg-gradient-to-r from-amber-600 to-orange-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">💪</span>
+                        <div class="text-left">
+                            <h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3>
+                            <p class="text-[10px] text-amber-100 font-bold">Logrado: ${prog.mejorNota}/${prog.mejorTotal} • ¡Inténtalo nuevamente!</p>
+                        </div>
+                    </div>
+                    <span class="text-[11px] bg-white text-orange-950 px-3 py-1.5 rounded-full font-extrabold shadow">Reintentar</span>
+                `;
+            }
+            // 3. AULA EN CURSO (A MITAD DE CAMINO)
+            else if (prog.indice > 0) {
+                div.className = "nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${aula.icono}</span>
+                        <div class="text-left">
+                            <h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3>
+                            <p class="text-[10px] text-amber-200 font-bold">⏳ En curso: Reto ${prog.indice + 1} de ${totalRetos}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-amber-400 text-slate-950 px-3 py-1.5 rounded-full font-extrabold shadow">Seguir ▶️</span>
+                `;
+            }
+            // 4. AULA NUEVA LISTA PARA ENTRAR
+            else {
+                div.className = "nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-pink-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${aula.icono}</span>
+                        <div class="text-left">
+                            <h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3>
+                            <p class="text-[10px] text-pink-100">${aula.subtitulo} (${totalRetos} retos)</p>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-white text-purple-900 px-3 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>
+                `;
+            }
         } else if (!tieneContenido) {
             div.className = "opacity-40 bg-slate-800/60 p-3 rounded-2xl border border-slate-700/70 flex justify-between items-center cursor-not-allowed";
             div.innerHTML = `
@@ -334,7 +379,8 @@ function intentarNivel(num) {
     rachaActual = 0;
     estadisticasSesion = {};
 
-    if (estadoJuego.progresoNiveles[num].indice >= colaPreguntas.length) {
+    // Si entra a repasar o reintentar desde 0, reiniciar contadores de esa ronda
+    if (estadoJuego.progresoNiveles[num].indice === 0 || estadoJuego.progresoNiveles[num].indice >= colaPreguntas.length) {
         estadoJuego.progresoNiveles[num].indice = 0;
         estadoJuego.progresoNiveles[num].aciertos = 0;
     }
@@ -517,23 +563,23 @@ function evaluarRespuesta(seleccion, q, btnElem) {
     }
 }
 
-// --- 7. VICTORIA Y BOLETA ---
+// --- 7. VICTORIA, REINTENTO Y BOLETA ---
 function finalizarBloqueNivel() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const aciertos = progreso.aciertos;
-    const porcentaje = Math.round((aciertos / colaPreguntas.length) * 100);
+    const totalRonda = colaPreguntas.length;
+    const porcentaje = Math.round((aciertos / totalRonda) * 100);
     const aprobado = porcentaje >= 70;
-
-    reproducirSonido('victoria');
-    try {
-        if (typeof confetti === 'function') {
-            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-        }
-    } catch (e) {}
 
     let estrellas = "⭐";
     if (porcentaje >= 90) estrellas = "⭐⭐⭐";
     else if (porcentaje >= 70) estrellas = "⭐⭐";
+
+    // Guardar el historial de la ronda en el aula
+    if (!progreso.mejorNota || aciertos > progreso.mejorNota) {
+        progreso.mejorNota = aciertos;
+        progreso.mejorTotal = totalRonda;
+    }
 
     document.getElementById('victoria-estrellas').textContent = estrellas;
 
@@ -553,16 +599,25 @@ function finalizarBloqueNivel() {
     }
 
     if (aprobado) {
+        reproducirSonido('victoria');
+        try {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+        } catch (e) {}
+
         progreso.completado = true;
+        progreso.estrellas = estrellas;
         if (nivelJugando === estadoJuego.nivelMaxDesbloqueado) {
             estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
         }
         estadoJuego.monedas += 50;
         document.getElementById('victoria-titulo').textContent = `¡Aula ${nivelJugando} Dominada! 🎉`;
-        document.getElementById('victoria-detalle').textContent = `¡Felicidades Itzel! Lograste ${aciertos} aciertos y ganaste +50 monedas. ¡Ya abriste la siguiente aula!`;
+        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). ¡Ganaste +50 monedas y abriste la siguiente aula!`;
     } else {
-        document.getElementById('victoria-titulo').textContent = `¡Sigue practicando, Itzel! 💪`;
-        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} aciertos. Necesitas al menos 70% para abrir la siguiente aula.`;
+        reproducirSonido('error');
+        document.getElementById('victoria-titulo').textContent = `¡Casi lo logras, Itzel! 💪`;
+        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). Necesitas al menos 70% para pasar de grado. ¡Inténtalo nuevamente!`;
     }
 
     progreso.indice = 0;
