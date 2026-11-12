@@ -41,24 +41,29 @@
     <main id="app" class="w-full max-w-lg z-10">
 
         <!-- 1. PANTALLA PORTADA -->
-        <section id="pantalla-portada" class="bg-slate-900/95 border-2 border-pink-500/50 rounded-3xl p-7 shadow-2xl text-center space-y-6 relative overflow-hidden">
+        <section id="pantalla-portada" class="bg-slate-900/95 border-2 border-pink-500/50 rounded-3xl p-6 shadow-2xl text-center space-y-5 relative overflow-hidden">
             <div class="space-y-1">
                 <span class="text-xs uppercase tracking-widest text-amber-300 font-extrabold bg-amber-500/15 px-3 py-1 rounded-full border border-amber-400/30">✨ Aventura Educativa ✨</span>
-                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 pt-2">
+                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 pt-1">
                     El Mundo Mágico de Itzel
                 </h2>
             </div>
 
-            <div class="flex justify-center py-1">
-                <div class="medallon-contenedor w-44 h-44">
-                    <div class="medallon-halo"></div>
-                    <img src="itzel.jpg" alt="Itzel" class="medallon-foto object-top w-44 h-44">
-                </div>
+            <!-- BANNER LLAMATIVO DEL REGALO DE PAPÁ -->
+            <div class="bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-purple-500/20 border-2 border-amber-400/70 rounded-2xl p-3.5 shadow-lg relative animate-pulse">
+                <span class="text-2xl block mb-1">🎁 👑 🎁</span>
+                <h3 class="text-sm font-black text-amber-300 uppercase tracking-wide">¡GRAN RETO FINAL DE PAPÁ!</h3>
+                <p class="text-xs text-slate-200 font-semibold mt-1">
+                    "¡Si completas todas las aulas y niveles de la academia, podrás pedirme <strong class="text-pink-400">el regalo de tus sueños</strong>!" — Con amor, Papá ❤️
+                </p>
             </div>
 
-            <p class="text-sm text-slate-300 leading-relaxed px-2">
-                ¡Hola <strong class="text-pink-400">Itzel</strong>! Explora aulas de <strong>Matemáticas, Lectura e Inglés con Voz</strong> desde nivel básico hasta pro.
-            </p>
+            <div class="flex justify-center py-1">
+                <div class="medallon-contenedor w-36 h-36">
+                    <div class="medallon-halo"></div>
+                    <img src="itzel.jpg" alt="Itzel" class="medallon-foto object-top w-36 h-36">
+                </div>
+            </div>
 
             <button onclick="entrarDesdePortada()" class="btn-brillo w-full bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:from-pink-400 hover:to-indigo-500 text-white font-black py-4 rounded-2xl text-lg shadow-xl transform active:scale-95 transition tracking-wide">
                 🚀 ¡ENTRAR A MI ACADEMIA!
@@ -91,7 +96,7 @@
             </button>
         </section>
 
-        <!-- 3. MAPA DE AULAS (MATEMÁTICAS/LECTURA + INGLÉS CON VOZ) -->
+        <!-- 3. MAPA DE AULAS -->
         <section id="pantalla-mapa" style="display: none;" class="bg-slate-900/95 border border-indigo-500/40 rounded-3xl p-5 shadow-2xl space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-black text-amber-300">🏫 MI ACADEMIA</h2>
@@ -105,7 +110,7 @@
                 </div>
             </div>
 
-            <!-- SELECTOR DE MUNDO (MATEMÁTICAS VS INGLÉS) -->
+            <!-- SELECTOR DE MUNDO -->
             <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-indigo-500/30">
                 <button id="tab-mundo-mate" onclick="cambiarMundo('mate')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow transition">
                     🧮📖 Mate y Lectura
@@ -114,6 +119,18 @@
                     🇺🇸 Inglés con Voz
                 </button>
             </div>
+
+            <!-- BOTÓN DEL COFRE DEL PREMIO FINAL -->
+            <button onclick="abrirPremioFinal()" class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-400 hover:to-pink-500 text-slate-950 font-black py-3 px-4 rounded-2xl shadow-xl flex items-center justify-between transition border-2 border-amber-300">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🎁</span>
+                    <div class="text-left">
+                        <span class="text-[10px] uppercase font-extrabold block text-slate-950">Meta del Regalo de Papá</span>
+                        <span id="estado-meta-texto" class="text-xs font-black text-white">¡Revisa cuánto te falta!</span>
+                    </div>
+                </div>
+                <span class="text-xs bg-white text-slate-950 px-3 py-1.5 rounded-xl font-black shadow">Ver 🌟</span>
+            </button>
 
             <!-- BARRA DE PROGRAMADOR -->
             <div id="panel-dev-mapa" style="display: none;" class="bg-amber-950/80 border border-amber-400/60 p-2.5 rounded-2xl flex flex-wrap justify-between items-center gap-2">
@@ -134,7 +151,7 @@
             <p id="subtitulo-mapa-mundo" class="text-xs text-slate-300">Supera cada aula con al menos 70% de aciertos para avanzar:</p>
 
             <!-- LISTA DINÁMICA DE AULAS -->
-            <div id="lista-aulas-container" class="space-y-3 max-h-[55vh] overflow-y-auto pr-1 pt-1"></div>
+            <div id="lista-aulas-container" class="space-y-3 max-h-[50vh] overflow-y-auto pr-1 pt-1"></div>
         </section>
 
         <!-- 4. ANIMACIÓN DE ENTRADA AL AULA -->
@@ -169,12 +186,10 @@
 
             <!-- TARJETA DEL RETO -->
             <div id="game-card" class="space-y-3.5 py-1">
-                <!-- Escena visual -->
                 <div id="escena-caja" class="escena-visual bg-gradient-to-br from-indigo-950/90 to-slate-900 border border-indigo-500/30 rounded-2xl p-3 text-center">
                     <div id="escena-dibujo" class="text-2xl sm:text-3xl tracking-wider leading-relaxed select-none">🍎🍎 ➕ 🍎</div>
                 </div>
 
-                <!-- CONTROLES ESPECIALES DE VOZ EN INGLÉS -->
                 <div id="panel-audio-ingles" style="display: none;" class="bg-sky-950/80 border border-sky-400/50 rounded-2xl p-3 text-center space-y-2">
                     <p id="ingles-frase-destacada" class="text-lg sm:text-xl font-black text-sky-200 tracking-wide">"Hello, how are you?"</p>
                     <p id="ingles-fonetica" class="text-[11px] text-amber-300 font-semibold italic">Pronunciación guía: /jelóu, jáu ar iú/</p>
@@ -192,18 +207,16 @@
                     <p id="resultado-mic-ingles" style="display: none;" class="text-[11px] font-bold pt-1"></p>
                 </div>
 
-                <!-- Texto de lectura -->
                 <div id="caja-lectura" style="display: none;" class="bg-amber-950/40 border border-amber-500/40 rounded-2xl p-3.5 text-left space-y-2">
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] uppercase font-extrabold text-amber-300 tracking-wider">📖 Lee con atención:</span>
-                        <button id="btn-leer-voz-lectura" onclick="leerRetoEnVozAlta()" class="text-[10px] bg-amber-500/20 hover:bg-amber-500/40 text-amber-200 px-2 py-0.5 rounded-full font-bold">
+                        <button onclick="leerRetoEnVozAlta()" class="text-[10px] bg-amber-500/20 hover:bg-amber-500/40 text-amber-200 px-2 py-0.5 rounded-full font-bold">
                             🔊 Escuchar
                         </button>
                     </div>
                     <p id="texto-lectura" class="text-xs sm:text-sm text-amber-50 leading-relaxed font-medium"></p>
                 </div>
 
-                <!-- Pregunta + Botón Pista y Voz -->
                 <div class="flex items-start justify-between gap-2 px-1">
                     <h2 id="pregunta-texto" class="text-base sm:text-lg font-extrabold text-white leading-snug"></h2>
                     <div class="flex flex-col gap-1.5 shrink-0">
@@ -216,16 +229,13 @@
                     </div>
                 </div>
 
-                <!-- Caja de pista -->
                 <div id="caja-pista" style="display: none;" class="bg-indigo-950/90 border border-amber-400/50 rounded-2xl p-3 text-xs text-amber-200 leading-relaxed">
                     💡 <strong>Pista:</strong> <span id="texto-pista"></span>
                 </div>
 
-                <!-- Opciones -->
                 <div id="opciones-container" class="grid grid-cols-1 gap-2.5 pt-1"></div>
             </div>
 
-            <!-- Feedback pedagógico -->
             <div id="feedback-box" style="display: none;" class="rounded-2xl p-3.5 text-center font-bold text-xs leading-relaxed border"></div>
         </section>
 
@@ -234,9 +244,20 @@
             <div id="victoria-estrellas" class="text-5xl">⭐⭐⭐</div>
             <h2 id="victoria-titulo" class="text-2xl font-black text-amber-300">¡Aula Superada!</h2>
             <p id="victoria-detalle" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+            <div id="mensaje-dinamico-meta" class="bg-pink-950/80 border border-pink-400/60 p-3 rounded-2xl text-xs text-pink-200 font-bold"></div>
             <div id="boleta-areas" class="bg-slate-950/90 border border-indigo-500/30 rounded-2xl p-3 text-left text-xs space-y-1"></div>
             <button onclick="volverAlMapa()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-3.5 rounded-2xl text-base shadow-lg">
                 🗺️ Volver a mi Academia
+            </button>
+        </section>
+
+        <!-- 7. MODAL DEL PREMIO FINAL DE PAPÁ -->
+        <section id="pantalla-premio-final" style="display: none;" class="bg-slate-900/95 border-2 border-pink-500 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <span class="text-5xl block">👑🎁✨</span>
+            <h2 class="text-2xl font-black text-pink-400">¡El Cofre Secreto de Papá!</h2>
+            <div id="contenido-cofre-meta" class="bg-slate-950 p-4 rounded-2xl border border-amber-400/50 text-xs sm:text-sm text-slate-200 leading-relaxed space-y-2 text-left"></div>
+            <button onclick="volverAlMapa()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black py-3.5 rounded-2xl text-base shadow-lg">
+                💖 ¡Entendido, a seguir jugando!
             </button>
         </section>
 
@@ -267,32 +288,31 @@
     </div>
 
     <footer class="mt-5 text-[11px] text-slate-500 z-10 text-center">
-        Academia Mágica de Itzel • Aprendiendo paso a paso ❤️
+        Academia Mágica de Itzel • Hecho con amor por Papá (Coby) ❤️
     </footer>
 
-    <!-- Archivos de Grados (Matemáticas y Lectura) -->
-    <script src="datos/grado1.js?v=5"></script>
-    <script src="datos/grado2.js?v=5"></script>
-    <script src="datos/grado3.js?v=5"></script>
-    <script src="datos/grado4.js?v=5"></script>
-    <script src="datos/grado5.js?v=5"></script>
-    <script src="datos/grado6.js?v=5"></script>
-    <script src="datos/sec1.js?v=5"></script>
-    <script src="datos/sec2.js?v=5"></script>
-    <script src="datos/sec3.js?v=5"></script>
-    <script src="datos/sec4.js?v=5"></script>
-    <script src="datos/sec5.js?v=5"></script>
+    <!-- Archivos de Grados e Inglés -->
+    <script src="datos/grado1.js?v=6"></script>
+    <script src="datos/grado2.js?v=6"></script>
+    <script src="datos/grado3.js?v=6"></script>
+    <script src="datos/grado4.js?v=6"></script>
+    <script src="datos/grado5.js?v=6"></script>
+    <script src="datos/grado6.js?v=6"></script>
+    <script src="datos/sec1.js?v=6"></script>
+    <script src="datos/sec2.js?v=6"></script>
+    <script src="datos/sec3.js?v=6"></script>
+    <script src="datos/sec4.js?v=6"></script>
+    <script src="datos/sec5.js?v=6"></script>
 
-    <!-- Archivos de Inglés con Voz (Basic -> Pro) -->
-    <script src="ingles/nivel1.js?v=5"></script>
-<script src="ingles/nivel2.js?v=5"></script>
-<script src="ingles/nivel3.js?v=5"></script>
-<script src="ingles/nivel4.js?v=5"></script>
-<script src="ingles/nivel5.js?v=5"></script>
-<script src="ingles/nivel6.js?v=5"></script>
-<script src="ingles/nivel7.js?v=5"></script>
-<script src="ingles/nivel8.js?v=5"></script>
+    <script src="ingles/nivel1.js?v=6"></script>
+    <script src="ingles/nivel2.js?v=6"></script>
+    <script src="ingles/nivel3.js?v=6"></script>
+    <script src="ingles/nivel4.js?v=6"></script>
+    <script src="ingles/nivel5.js?v=6"></script>
+    <script src="ingles/nivel6.js?v=6"></script>
+    <script src="ingles/nivel7.js?v=6"></script>
+    <script src="ingles/nivel8.js?v=6"></script>
 
-    <script src="js/app.js?v=5"></script>
+    <script src="js/app.js?v=6"></script>
 </body>
 </html>
