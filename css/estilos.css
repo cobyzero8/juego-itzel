@@ -1,11 +1,48 @@
 /* ============================================================
-   ESTILOS DEL MAPA DE NIVELES Y SELECCIÓN DE AVATAR
+   ESTILOS ANIMADOS - EL MUNDO MÁGICO DE ITZEL
    ============================================================ */
 
-/* Animación de pulso para el nivel actual en el mapa */
+* {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* Fondo con estrellas sutiles animadas */
+body {
+    background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 3px),
+        linear-gradient(to bottom right, #1e1b4b, #0f172a, #3b0764);
+    background-size: 350px 350px, 200px 200px, 100% 100%;
+    background-position: 0 0, 40px 60px, 0 0;
+}
+
+/* Avatar flotando suavemente como en un videojuego */
+@keyframes flotar-avatar {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(3deg); }
+}
+
+.avatar-flotante {
+    display: inline-block;
+    animation: flotar-avatar 2.8s ease-in-out infinite;
+}
+
+/* Botones de respuesta con efecto 3D táctil */
+.btn-opcion {
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 5px 0 #1e1b4b;
+}
+
+.btn-opcion:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #1e1b4b;
+}
+
+/* Pulso mágico para el nivel desbloqueado en el mapa */
 @keyframes mapa-nodo-pulse {
     0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
-    70% { transform: scale(1.08); box-shadow: 0 0 0 12px rgba(236, 72, 153, 0); }
+    70% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(236, 72, 153, 0); }
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
 }
 
@@ -13,22 +50,33 @@
     animation: mapa-nodo-pulse 2s infinite;
 }
 
-/* Tarjetas de Selección de Avatar */
+/* Animación de acierto */
+@keyframes acierto-pulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+}
+
+.anim-acierto {
+    animation: acierto-pulse 0.45s ease-out;
+}
+
+/* Animación de error suave */
+@keyframes error-shake {
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+}
+
+.anim-error {
+    animation: error-shake 0.4s ease-in-out;
+}
+
+/* Tarjetas de Avatar */
 .avatar-card {
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.avatar-card:hover, .avatar-card.seleccionado {
-    transform: scale(1.05);
-    border-color: #ec4899 !important;
-    background-color: rgba(236, 72, 153, 0.15) !important;
-}
-
-/* Transiciones para cambio de pantallas */
-.pantalla {
-    transition: opacity 0.3s ease-in-out;
-}
-.oculto {
-    display: none !important;
+.avatar-card:hover {
+    transform: scale(1.06);
 }
