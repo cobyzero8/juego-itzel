@@ -1,11 +1,13 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO BLINDADO Y ESCALABLE PARA ITZEL (js/app.js)
-   Con Estados Visuales de Progreso, Puntaje y Reintento en Mapa
+   MOTOR PEDAGÓGICO DUAL PARA ITZEL (js/app.js)
+   Mundo 1: Matemáticas y Lectura (11 Grados)
+   Mundo 2: Academia de Inglés con Voz (Basic -> Pro, 8 Niveles)
    ============================================================ */
 
 let modoProgramadorActivo = false;
+let mundoActivo = 'mate'; // 'mate' | 'ingles'
 
-const CATALOGO_AULAS = [
+const CATALOGO_MATE = [
     { num: 1, titulo: "Aula 1: 1.º de Primaria", subtitulo: "Bases Visuales", icono: "⭐", varDatos: () => (typeof nivel1_Grado1 !== 'undefined') ? nivel1_Grado1 : null },
     { num: 2, titulo: "Aula 2: 2.º de Primaria", subtitulo: "Agilidad Mental", icono: "🌲", varDatos: () => (typeof nivel2_Grado2 !== 'undefined') ? nivel2_Grado2 : null },
     { num: 3, titulo: "Aula 3: 3.º de Primaria", subtitulo: "Dominio y Tablas", icono: "🏰", varDatos: () => (typeof nivel3_Grado3 !== 'undefined') ? nivel3_Grado3 : null },
@@ -19,12 +21,25 @@ const CATALOGO_AULAS = [
     { num: 11, titulo: "Secundaria 5.º", subtitulo: "Nivel Pre-Universitario", icono: "🎓", varDatos: () => (typeof nivel11_Sec5 !== 'undefined') ? nivel11_Sec5 : null }
 ];
 
+const CATALOGO_INGLES = [
+    { num: 1, titulo: "Level 1: Starter Kids", subtitulo: "Saludos, Colores y Animales", icono: "🧸", varDatos: () => (typeof inglesNivel1 !== 'undefined') ? inglesNivel1 : null },
+    { num: 2, titulo: "Level 2: Basic A1", subtitulo: "Familia, Verbo To Be y Números", icono: "🌱", varDatos: () => (typeof inglesNivel2 !== 'undefined') ? inglesNivel2 : null },
+    { num: 3, titulo: "Level 3: Elementary A2", subtitulo: "Rutinas, Hora y Ciudad", icono: "🚲", varDatos: () => (typeof inglesNivel3 !== 'undefined') ? inglesNivel3 : null },
+    { num: 4, titulo: "Level 4: Pre-Intermediate B1", subtitulo: "Pasado Simple e Historias", icono: "✈️", varDatos: () => (typeof inglesNivel4 !== 'undefined') ? inglesNivel4 : null },
+    { num: 5, titulo: "Level 5: Intermediate B1+", subtitulo: "Futuro, Ciencia y Cultura", icono: "🌍", varDatos: () => (typeof inglesNivel5 !== 'undefined') ? inglesNivel5 : null },
+    { num: 6, titulo: "Level 6: Upper-Intermediate B2", subtitulo: "Phrasal Verbs y Condicionales", icono: "🎯", varDatos: () => (typeof inglesNivel6 !== 'undefined') ? inglesNivel6 : null },
+    { num: 7, titulo: "Level 7: Advanced C1", subtitulo: "Lectura Académica y Debates", icono: "🏛️", varDatos: () => (typeof inglesNivel7 !== 'undefined') ? inglesNivel7 : null },
+    { num: 8, titulo: "Level 8: Mastery Pro C2", subtitulo: "Fluidez Nativa y Modismos", icono: "👑", varDatos: () => (typeof inglesNivel8 !== 'undefined') ? inglesNivel8 : null }
+];
+
 let estadoJuego = {
     avatar: 'foto',
     xp: 0,
     monedas: 0,
     nivelMaxDesbloqueado: 1,
-    progresoNiveles: {}
+    progresoNiveles: {},
+    inglesMaxDesbloqueado: 1,
+    progresoIngles: {}
 };
 
 let nivelJugando = 1;
@@ -33,7 +48,7 @@ let totalInicialAula = 30;
 let rachaActual = 0;
 let estadisticasSesion = {};
 
-// --- 1. SONIDOS Y VOZ ---
+// --- 1. SONIDOS Y VOZ (ESPAÑOL E INGLÉS NATIVO) ---
 function reproducirSonido(tipo) {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -70,13 +85,33 @@ function reproducirSonido(tipo) {
     } catch (e) {}
 }
 
+function pronunciarIngles(velocidad = 0.95) {
+    try {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const progObj = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+        const q = colaPreguntas[progObj[nivelJugando].indice];
+        if (!q || !q.audioIngles) return;
+
+        const voz = new SpeechSynthesisUtterance(q.audioIngles);
+        voz.lang = 'en-US';
+        voz.rate = velocidad;
+        window.speechSynthesis.speak(voz);
+    } catch (e) {}
+}
+
 function leerRetoEnVozAlta() {
     try {
         if (!('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
-        const progreso = estadoJuego.progresoNiveles[nivelJugando];
-        const q = colaPreguntas[progreso.indice];
+        const progObj = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+        const q = colaPreguntas[progObj[nivelJugando].indice];
         if (!q) return;
+
+        if (mundoActivo === 'ingles' && q.audioIngles) {
+            pronunciarIngles(0.95);
+            return;
+        }
 
         const textoCompleto = (q.textoLectura ? q.textoLectura + ". " : "") + q.pregunta;
         const voz = new SpeechSynthesisUtterance(textoCompleto);
@@ -86,7 +121,55 @@ function leerRetoEnVozAlta() {
     } catch (e) {}
 }
 
-// --- 2. LOGIN PROGRAMADOR (coby / 123456pp) ---
+function practicarVozIngles() {
+    const resEl = document.getElementById('resultado-mic-ingles');
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRec) {
+        resEl.style.display = 'block';
+        resEl.className = "text-[11px] font-bold pt-1 text-amber-300";
+        resEl.textContent = "⚠️ Tu navegador no soporta micrófono aquí. ¡Usa los botones 🔊 Normal y 🐢 Lento y repítelo en voz alta!";
+        return;
+    }
+
+    const progObj = estadoJuego.progresoIngles[nivelJugando];
+    const q = colaPreguntas[progObj.indice];
+    if (!q || !q.audioIngles) return;
+
+    const recognition = new SpeechRec();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    resEl.style.display = 'block';
+    resEl.className = "text-[11px] font-bold pt-1 text-sky-300 animate-pulse";
+    resEl.textContent = "🎙️ Escuchando... di la frase en inglés ahora";
+
+    recognition.onresult = (event) => {
+        const dicho = event.results[0][0].transcript.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+        const objetivo = q.audioIngles.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+        resEl.classList.remove('animate-pulse');
+
+        if (dicho === objetivo || objetivo.includes(dicho) || dicho.includes(objetivo)) {
+            reproducirSonido('acierto');
+            resEl.className = "text-[11px] font-extrabold pt-1 text-emerald-400";
+            resEl.textContent = `🌟 ¡Excelente pronunciación! Dijiste: "${event.results[0][0].transcript}"`;
+        } else {
+            resEl.className = "text-[11px] font-bold pt-1 text-amber-300";
+            resEl.textContent = `🗣️ Escuché: "${event.results[0][0].transcript}". ¡Escucha 🐢 Lento e inténtalo otra vez!`;
+        }
+    };
+
+    recognition.onerror = () => {
+        resEl.classList.remove('animate-pulse');
+        resEl.className = "text-[11px] font-bold pt-1 text-rose-300";
+        resEl.textContent = "⚠️ No se detectó voz. Revisa el permiso de micrófono o practica escuchando 🔊.";
+    };
+
+    recognition.start();
+}
+
+// --- 2. LOGIN PROGRAMADOR ---
 function abrirModalLogin() {
     const modal = document.getElementById('modal-login-dev');
     if (!modal) return;
@@ -137,6 +220,7 @@ function aplicarConfiguracionDev() {
 function testDesbloquearTodo() {
     if (!modoProgramadorActivo) return;
     estadoJuego.nivelMaxDesbloqueado = 11;
+    estadoJuego.inglesMaxDesbloqueado = 8;
     guardarEstado();
     actualizarMapaVisual();
     reproducirSonido('acierto');
@@ -150,14 +234,36 @@ function testReiniciarJuego() {
 
 function testCompletarNivelRapido() {
     if (!modoProgramadorActivo) return;
-    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const progObj = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+    const progreso = progObj[nivelJugando];
     progreso.aciertos = totalInicialAula;
     progreso.indice = colaPreguntas.length;
     estadoJuego.xp += 250;
     finalizarBloqueNivel();
 }
 
-// --- 3. NAVEGACIÓN ---
+// --- 3. NAVEGACIÓN Y CAMBIO DE MUNDO ---
+function cambiarMundo(nuevoMundo) {
+    mundoActivo = nuevoMundo;
+    reproducirSonido('acierto');
+
+    const tabMate = document.getElementById('tab-mundo-mate');
+    const tabIngles = document.getElementById('tab-mundo-ingles');
+    const subMapa = document.getElementById('subtitulo-mapa-mundo');
+
+    if (mundoActivo === 'mate') {
+        tabMate.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow transition";
+        tabIngles.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
+        subMapa.textContent = "Supera cada aula con al menos 70% de aciertos para avanzar:";
+    } else {
+        tabIngles.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow transition";
+        tabMate.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
+        subMapa.textContent = "Escucha, pronuncia y domina el inglés paso a paso (70% para subir de nivel):";
+    }
+
+    actualizarMapaVisual();
+}
+
 function mostrarPantalla(idPantalla) {
     try {
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -218,7 +324,7 @@ function volverAlMapa() {
     actualizarMapaVisual();
 }
 
-// --- 4. CABECERA Y RENDERIZADO VISUAL DE ESTADOS EN EL MAPA ---
+// --- 4. CABECERA Y MAPA DINÁMICO ---
 function actualizarHeader() {
     const box = document.getElementById('header-avatar-box');
     if (box) {
@@ -239,15 +345,19 @@ function actualizarHeader() {
 
 function actualizarMapaVisual() {
     const tituloEl = document.getElementById('nivel-titulo');
-    if (tituloEl) tituloEl.textContent = "🏫 Aulas de Aprendizaje";
+    if (tituloEl) {
+        tituloEl.textContent = (mundoActivo === 'ingles') ? "🇺🇸 Academia de Inglés" : "🏫 Mate y Lectura";
+    }
 
     const contenedor = document.getElementById('lista-aulas-container');
     if (!contenedor) return;
     contenedor.innerHTML = "";
 
-    if (!estadoJuego.progresoNiveles) estadoJuego.progresoNiveles = {};
+    const catalogo = (mundoActivo === 'ingles') ? CATALOGO_INGLES : CATALOGO_MATE;
+    const maxDesb = (mundoActivo === 'ingles') ? (estadoJuego.inglesMaxDesbloqueado || 1) : (estadoJuego.nivelMaxDesbloqueado || 1);
+    const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
 
-    const aulasOrdenadas = [...CATALOGO_AULAS].reverse();
+    const aulasOrdenadas = [...catalogo].reverse();
 
     aulasOrdenadas.forEach(aula => {
         let datosAula = null;
@@ -257,16 +367,18 @@ function actualizarMapaVisual() {
             datosAula = null;
         }
 
-        const desbloqueado = (estadoJuego.nivelMaxDesbloqueado || 1) >= aula.num;
-        const tieneContenido = datosAula !== null && Array.isArray(datosAula.matematicas);
-        const totalRetos = tieneContenido ? (datosAula.matematicas.length + (datosAula.lectura ? datosAula.lectura.length : 0)) : 30;
-        const prog = estadoJuego.progresoNiveles[aula.num] || { indice: 0, aciertos: 0, completado: false, mejorNota: null, mejorTotal: totalRetos, estrellas: "" };
+        const desbloqueado = maxDesb >= aula.num;
+        const listaPreguntas = datosAula
+            ? (mundoActivo === 'ingles' ? (datosAula.retos || []) : [...(datosAula.matematicas || []), ...(datosAula.lectura || [])])
+            : [];
+        const tieneContenido = listaPreguntas.length > 0;
+        const totalRetos = tieneContenido ? listaPreguntas.length : 30;
+        const prog = mapaProgreso[aula.num] || { indice: 0, aciertos: 0, completado: false, mejorNota: null, mejorTotal: totalRetos, estrellas: "" };
 
         const div = document.createElement('div');
         div.onclick = () => intentarNivel(aula.num);
 
         if (desbloqueado && tieneContenido) {
-            // 1. AULA YA APROBADA (VERDE ESMERALDA CON ESTRELLAS)
             if (prog.completado) {
                 div.className = "cursor-pointer bg-gradient-to-r from-emerald-700 to-teal-700 p-3.5 rounded-2xl border-2 border-emerald-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition";
                 div.innerHTML = `
@@ -279,9 +391,7 @@ function actualizarMapaVisual() {
                     </div>
                     <span class="text-[11px] bg-emerald-950/70 text-emerald-200 border border-emerald-300/50 px-3 py-1.5 rounded-full font-extrabold">Repasar 🔄</span>
                 `;
-            }
-            // 2. AULA INTENTADA PERO NO APROBADA (< 70% - PIDE REINTENTO)
-            else if (prog.mejorNota !== null && prog.mejorNota !== undefined && prog.indice === 0) {
+            } else if (prog.mejorNota !== null && prog.mejorNota !== undefined && prog.indice === 0) {
                 div.className = "nodo-activo cursor-pointer bg-gradient-to-r from-amber-600 to-orange-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
@@ -293,9 +403,7 @@ function actualizarMapaVisual() {
                     </div>
                     <span class="text-[11px] bg-white text-orange-950 px-3 py-1.5 rounded-full font-extrabold shadow">Reintentar</span>
                 `;
-            }
-            // 3. AULA EN CURSO (A MITAD DE CAMINO)
-            else if (prog.indice > 0) {
+            } else if (prog.indice > 0) {
                 div.className = "nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
@@ -307,19 +415,20 @@ function actualizarMapaVisual() {
                     </div>
                     <span class="text-xs bg-amber-400 text-slate-950 px-3 py-1.5 rounded-full font-extrabold shadow">Seguir ▶️</span>
                 `;
-            }
-            // 4. AULA NUEVA LISTA PARA ENTRAR
-            else {
-                div.className = "nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-pink-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+            } else {
+                const gradiente = (mundoActivo === 'ingles')
+                    ? "from-sky-600 via-blue-600 to-indigo-700 border-sky-300/80"
+                    : "from-pink-600 via-purple-600 to-indigo-600 border-pink-300/80";
+                div.className = `nodo-activo cursor-pointer bg-gradient-to-r ${gradiente} p-3.5 rounded-2xl border-2 flex justify-between items-center shadow-lg transform active:scale-95 transition`;
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">${aula.icono}</span>
                         <div class="text-left">
                             <h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3>
-                            <p class="text-[10px] text-pink-100">${aula.subtitulo} (${totalRetos} retos)</p>
+                            <p class="text-[10px] text-sky-100">${aula.subtitulo} (${totalRetos} retos)</p>
                         </div>
                     </div>
-                    <span class="text-xs bg-white text-purple-900 px-3 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>
+                    <span class="text-xs bg-white text-indigo-950 px-3 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>
                 `;
             }
         } else if (!tieneContenido) {
@@ -341,7 +450,7 @@ function actualizarMapaVisual() {
                     <span class="text-2xl">${aula.icono}</span>
                     <div class="text-left">
                         <h3 class="font-extrabold text-sm text-slate-300">${aula.titulo}</h3>
-                        <p class="text-[10px] text-slate-400">Supera el Aula ${aula.num - 1} para abrir</p>
+                        <p class="text-[10px] text-slate-400">Supera el nivel anterior para abrir</p>
                     </div>
                 </div>
                 <span class="text-xs bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>
@@ -354,7 +463,11 @@ function actualizarMapaVisual() {
 
 // --- 5. INICIAR AULA ---
 function intentarNivel(num) {
-    const aulaInfo = CATALOGO_AULAS.find(a => a.num === num);
+    const catalogo = (mundoActivo === 'ingles') ? CATALOGO_INGLES : CATALOGO_MATE;
+    const maxDesb = (mundoActivo === 'ingles') ? estadoJuego.inglesMaxDesbloqueado : estadoJuego.nivelMaxDesbloqueado;
+    const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+
+    const aulaInfo = catalogo.find(a => a.num === num);
     if (!aulaInfo) return;
 
     let datosGrado = null;
@@ -364,25 +477,27 @@ function intentarNivel(num) {
         datosGrado = null;
     }
 
-    if (!datosGrado || num > estadoJuego.nivelMaxDesbloqueado) {
+    if (!datosGrado || num > maxDesb) {
         reproducirSonido('error');
         return;
     }
 
-    if (!estadoJuego.progresoNiveles[num]) {
-        estadoJuego.progresoNiveles[num] = { indice: 0, aciertos: 0, completado: false };
+    if (!mapaProgreso[num]) {
+        mapaProgreso[num] = { indice: 0, aciertos: 0, completado: false };
     }
 
     nivelJugando = num;
-    colaPreguntas = [...(datosGrado.matematicas || []), ...(datosGrado.lectura || [])];
+    colaPreguntas = (mundoActivo === 'ingles')
+        ? [...(datosGrado.retos || [])]
+        : [...(datosGrado.matematicas || []), ...(datosGrado.lectura || [])];
+
     totalInicialAula = colaPreguntas.length;
     rachaActual = 0;
     estadisticasSesion = {};
 
-    // Si entra a repasar o reintentar desde 0, reiniciar contadores de esa ronda
-    if (estadoJuego.progresoNiveles[num].indice === 0 || estadoJuego.progresoNiveles[num].indice >= colaPreguntas.length) {
-        estadoJuego.progresoNiveles[num].indice = 0;
-        estadoJuego.progresoNiveles[num].aciertos = 0;
+    if (mapaProgreso[num].indice === 0 || mapaProgreso[num].indice >= colaPreguntas.length) {
+        mapaProgreso[num].indice = 0;
+        mapaProgreso[num].aciertos = 0;
     }
 
     const animBox = document.getElementById('anim-avatar-box');
@@ -399,14 +514,15 @@ function intentarNivel(num) {
 
     setTimeout(() => {
         mostrarPantalla('pantalla-juego');
-        document.getElementById('nivel-titulo').textContent = `🏫 ${aulaInfo.titulo}`;
+        document.getElementById('nivel-titulo').textContent = `${aulaInfo.icono} ${aulaInfo.titulo}`;
         cargarPreguntaActual();
-    }, 1500);
+    }, 1400);
 }
 
 // --- 6. PREGUNTAS ---
 function cargarPreguntaActual() {
-    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+    const progreso = mapaProgreso[nivelJugando];
     const idx = progreso.indice;
 
     document.getElementById('caja-pista').style.display = 'none';
@@ -418,7 +534,7 @@ function cargarPreguntaActual() {
     }
 
     const q = colaPreguntas[idx];
-    const areaNombre = q.area || (q.textoLectura ? "Lectura 📖" : "Matemáticas 🧮");
+    const areaNombre = q.area || (mundoActivo === 'ingles' ? "English 🇺🇸" : "Matemáticas 🧮");
 
     const catTag = document.getElementById('categoria-tag');
     catTag.textContent = areaNombre;
@@ -429,18 +545,35 @@ function cargarPreguntaActual() {
         "Multiplicación ✖️": "bg-indigo-600",
         "División ➗": "bg-purple-600",
         "Razonamiento 🧠": "bg-amber-600",
-        "Lectura 📖": "bg-pink-600"
+        "Lectura 📖": "bg-pink-600",
+        "Vocabulary 🗣️": "bg-sky-600",
+        "Grammar 🧩": "bg-indigo-600",
+        "Reading 📘": "bg-teal-600",
+        "Listening 🎧": "bg-amber-600"
     };
-    catTag.className = `${coloresArea[areaNombre] || "bg-emerald-600"} text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow`;
+    catTag.className = `${coloresArea[areaNombre] || "bg-sky-600"} text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow`;
 
-    document.getElementById('texto-pista').textContent = q.pista || "Lee con calma los datos del problema y resuelve paso a paso.";
+    document.getElementById('texto-pista').textContent = q.pista || "Escucha con atención y elige la respuesta correcta.";
 
     const escenaCaja = document.getElementById('escena-caja');
     const escenaDibujo = document.getElementById('escena-dibujo');
     escenaCaja.classList.remove('escena-visual');
     void escenaCaja.offsetWidth;
     escenaCaja.classList.add('escena-visual');
-    escenaDibujo.textContent = q.dibujo || "🧠 ✨ 📐 ✨ 🌟";
+    escenaDibujo.textContent = q.dibujo || "🌟 ✨ 📚 ✨ 🌟";
+
+    // Panel especial de Inglés con Audio
+    const panelIngles = document.getElementById('panel-audio-ingles');
+    const resMic = document.getElementById('resultado-mic-ingles');
+    if (mundoActivo === 'ingles' && q.audioIngles) {
+        panelIngles.style.display = 'block';
+        resMic.style.display = 'none';
+        document.getElementById('ingles-frase-destacada').textContent = `"${q.audioIngles}"`;
+        document.getElementById('ingles-fonetica').textContent = q.fonetica ? `Pronunciación guía: ${q.fonetica}` : "";
+        setTimeout(() => pronunciarIngles(0.95), 350);
+    } else {
+        panelIngles.style.display = 'none';
+    }
 
     const cajaLectura = document.getElementById('caja-lectura');
     if (q.textoLectura) {
@@ -492,7 +625,8 @@ function evaluarRespuesta(seleccion, q, btnElem) {
 
     const card = document.getElementById('game-card');
     const feedbackBox = document.getElementById('feedback-box');
-    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+    const progreso = mapaProgreso[nivelJugando];
     const areaNombre = q.area || "General";
 
     if (!estadisticasSesion[areaNombre]) {
@@ -516,7 +650,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         feedbackBox.className = "rounded-2xl p-3 text-center font-bold text-xs leading-relaxed border bg-emerald-950/80 border-emerald-500/50 text-emerald-300";
         feedbackBox.textContent = rachaActual >= 3
             ? `🔥 ¡Súper racha de ${rachaActual}, Itzel! +5 🪙`
-            : "🌟 ¡Excelente, Itzel! Lo resolviste muy bien +5 🪙";
+            : "🌟 ¡Excelente, Itzel! +5 🪙";
 
         try {
             if (typeof confetti === 'function') {
@@ -544,7 +678,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
 
         feedbackBox.className = "rounded-2xl p-4 text-left font-bold text-xs leading-relaxed border-2 bg-rose-950/90 border-amber-400/70 text-rose-100 space-y-3 shadow-xl";
         feedbackBox.innerHTML = `
-            <div>💡 <strong class="text-amber-300 text-sm">Aprende cómo se resuelve:</strong><br>
+            <div>💡 <strong class="text-amber-300 text-sm">Aprende la respuesta correcta:</strong><br>
             <span class="text-white font-medium text-xs block mt-1">${explicacionTexto}</span></div>
             <button onclick="avanzarSiguienteDespuesDeError()" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-2.5 rounded-xl text-xs transition shadow">
                 ¡Entendido! Continuar ➡️
@@ -563,9 +697,10 @@ function evaluarRespuesta(seleccion, q, btnElem) {
     }
 }
 
-// --- 7. VICTORIA, REINTENTO Y BOLETA ---
+// --- 7. VICTORIA Y BOLETA ---
 function finalizarBloqueNivel() {
-    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+    const progreso = mapaProgreso[nivelJugando];
     const aciertos = progreso.aciertos;
     const totalRonda = colaPreguntas.length;
     const porcentaje = Math.round((aciertos / totalRonda) * 100);
@@ -575,7 +710,6 @@ function finalizarBloqueNivel() {
     if (porcentaje >= 90) estrellas = "⭐⭐⭐";
     else if (porcentaje >= 70) estrellas = "⭐⭐";
 
-    // Guardar el historial de la ronda en el aula
     if (!progreso.mejorNota || aciertos > progreso.mejorNota) {
         progreso.mejorNota = aciertos;
         progreso.mejorTotal = totalRonda;
@@ -608,16 +742,22 @@ function finalizarBloqueNivel() {
 
         progreso.completado = true;
         progreso.estrellas = estrellas;
-        if (nivelJugando === estadoJuego.nivelMaxDesbloqueado) {
-            estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
+        if (mundoActivo === 'ingles') {
+            if (nivelJugando === estadoJuego.inglesMaxDesbloqueado) {
+                estadoJuego.inglesMaxDesbloqueado = nivelJugando + 1;
+            }
+        } else {
+            if (nivelJugando === estadoJuego.nivelMaxDesbloqueado) {
+                estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
+            }
         }
         estadoJuego.monedas += 50;
-        document.getElementById('victoria-titulo').textContent = `¡Aula ${nivelJugando} Dominada! 🎉`;
-        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). ¡Ganaste +50 monedas y abriste la siguiente aula!`;
+        document.getElementById('victoria-titulo').textContent = `¡Nivel ${nivelJugando} Superado! 🎉`;
+        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). ¡Ganaste +50 monedas y abriste el siguiente nivel!`;
     } else {
         reproducirSonido('error');
         document.getElementById('victoria-titulo').textContent = `¡Casi lo logras, Itzel! 💪`;
-        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). Necesitas al menos 70% para pasar de grado. ¡Inténtalo nuevamente!`;
+        document.getElementById('victoria-detalle').textContent = `Logrado: ${aciertos}/${totalRonda} respuestas (${porcentaje}%). Necesitas al menos 70% para avanzar. ¡Inténtalo nuevamente!`;
     }
 
     progreso.indice = 0;
@@ -626,7 +766,7 @@ function finalizarBloqueNivel() {
     mostrarPantalla('pantalla-victoria');
 }
 
-// --- 8. PERSISTENCIA SEGURA ---
+// --- 8. PERSISTENCIA ---
 function guardarEstado() {
     try {
         localStorage.setItem('itzel_mundo_v6', JSON.stringify(estadoJuego));
@@ -640,6 +780,8 @@ function cargarEstado() {
             const parsed = JSON.parse(guardado);
             estadoJuego = { ...estadoJuego, ...parsed };
             if (!estadoJuego.progresoNiveles) estadoJuego.progresoNiveles = {};
+            if (!estadoJuego.progresoIngles) estadoJuego.progresoIngles = {};
+            if (!estadoJuego.inglesMaxDesbloqueado) estadoJuego.inglesMaxDesbloqueado = 1;
         }
     } catch (e) {
         localStorage.removeItem('itzel_mundo_v6');
