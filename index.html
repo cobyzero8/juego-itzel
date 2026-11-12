@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Reino Mágico de Itzel</title>
+    <title>Academia Mágica de Itzel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="css/estilos.css">
@@ -21,7 +21,7 @@
             </div>
             <div>
                 <h1 class="text-base font-extrabold text-pink-400 flex items-center gap-1">👑 Itzel</h1>
-                <p id="nivel-titulo" class="text-[11px] font-bold text-amber-300">🌟 Aventura Mágica</p>
+                <p id="nivel-titulo" class="text-[11px] font-bold text-amber-300">🌟 Academia Mágica</p>
             </div>
         </div>
         <div class="flex items-center gap-2.5 text-right">
@@ -56,7 +56,7 @@
                     ¡Bienvenida, Itzel!
                 </h1>
                 <p class="text-sm text-purple-200 font-medium">
-                    Domina suma, resta, multiplicación, división, razonamiento y lectura paso a paso.
+                    Domina suma, resta, multiplicación, división, razonamiento y lectura desde Primaria hasta Secundaria.
                 </p>
             </div>
 
@@ -100,9 +100,9 @@
         </div>
     </section>
 
-    <!-- PANTALLA 2: MAPA DE AULAS / NIVELES -->
+    <!-- PANTALLA 2: MAPA DINÁMICO DE AULAS -->
     <section id="pantalla-mapa" class="max-w-md mx-auto w-full my-auto space-y-4 text-center" style="display: none;">
-        <div class="bg-slate-900/90 border-2 border-indigo-500/50 rounded-3xl p-6 shadow-2xl space-y-4 backdrop-blur">
+        <div class="bg-slate-900/90 border-2 border-indigo-500/50 rounded-3xl p-5 shadow-2xl space-y-3.5 backdrop-blur">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-extrabold text-amber-300 uppercase tracking-wider">🏫 Aulas de Aprendizaje</h2>
                 <div class="flex items-center gap-1.5">
@@ -115,7 +115,7 @@
                 </div>
             </div>
 
-            <!-- Panel de Desarrollador (Solo visible con login coby) -->
+            <!-- Panel de Desarrollador -->
             <div id="panel-dev-mapa" style="display: none;" class="bg-amber-500/15 border border-amber-400/50 rounded-2xl p-2.5 flex justify-between items-center gap-2">
                 <span class="text-[10px] font-extrabold text-amber-300 uppercase">🛠️ Modo Coby:</span>
                 <div class="flex gap-1.5">
@@ -131,57 +131,10 @@
                 </div>
             </div>
 
-            <p class="text-xs text-slate-300 text-left">Cada aula incluye las 4 operaciones, razonamiento y lecturas completas:</p>
+            <p class="text-xs text-slate-300 text-left">Supera cada aula con al menos 70% de aciertos para avanzar:</p>
 
-            <div class="space-y-3 py-1">
-                <!-- Aula 4 -->
-                <div id="tarjeta-nivel-4" onclick="intentarNivel(4)" class="opacity-50 bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed transition">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl">🏔️</span>
-                        <div class="text-left">
-                            <h3 id="titulo-nivel-4" class="font-extrabold text-sm text-slate-400">Aula 4: Retos Avanzados</h3>
-                            <p id="subtitulo-nivel-4" class="text-[10px] text-slate-500">Bloqueado (Supera Aula 3)</p>
-                        </div>
-                    </div>
-                    <span id="badge-nivel-4" class="text-xs bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>
-                </div>
-
-                <!-- Aula 3 -->
-                <div id="tarjeta-nivel-3" onclick="intentarNivel(3)" class="opacity-50 bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed transition">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl">🏰</span>
-                        <div class="text-left">
-                            <h3 id="titulo-nivel-3" class="font-extrabold text-sm text-slate-400">Aula 3: Dominio y Tablas</h3>
-                            <p id="subtitulo-nivel-3" class="text-[10px] text-slate-500">Bloqueado (Supera Aula 2)</p>
-                        </div>
-                    </div>
-                    <span id="badge-nivel-3" class="text-xs bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>
-                </div>
-
-                <!-- Aula 2 -->
-                <div id="tarjeta-nivel-2" onclick="intentarNivel(2)" class="opacity-60 bg-slate-800/90 p-4 rounded-2xl border-2 border-slate-700 flex justify-between items-center cursor-not-allowed transition">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl">🌲</span>
-                        <div class="text-left">
-                            <h3 id="titulo-nivel-2" class="font-extrabold text-sm text-slate-300">Aula 2: Agilidad Mental</h3>
-                            <p id="subtitulo-nivel-2" class="text-[10px] text-slate-400">Bloqueado (Supera Aula 1)</p>
-                        </div>
-                    </div>
-                    <span id="badge-nivel-2" class="text-xs bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>
-                </div>
-
-                <!-- Aula 1 -->
-                <div id="tarjeta-nivel-1" onclick="intentarNivel(1)" class="nodo-activo cursor-pointer bg-gradient-to-r from-pink-600 to-purple-600 p-4 rounded-2xl border-2 border-pink-400 flex justify-between items-center shadow-lg transform active:scale-95 transition">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl">⭐</span>
-                        <div class="text-left">
-                            <h3 class="font-extrabold text-sm text-white">Aula 1: Bases Visuales</h3>
-                            <p id="subtitulo-nivel-1" class="text-[10px] text-pink-100">Suma, Resta, Mult., Div., Raz. y Lectura</p>
-                        </div>
-                    </div>
-                    <span class="text-xs bg-white text-purple-900 px-3.5 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>
-                </div>
-            </div>
+            <!-- Contenedor Dinámico de Aulas (Se llena automáticamente desde js/app.js) -->
+            <div id="lista-aulas-container" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
         </div>
     </section>
 
@@ -213,7 +166,7 @@
         </div>
     </section>
 
-    <!-- PANTALLA 4: PREGUNTAS ILUSTRADAS + PISTA + LECTURAS -->
+    <!-- PANTALLA 4: PREGUNTAS ILUSTRADAS + PISTA + VOZ + LECTURAS -->
     <section id="pantalla-juego" class="max-w-md mx-auto w-full my-auto space-y-3" style="display: none;">
         <div class="flex items-center justify-between gap-2">
             <button onclick="volverAlMapa()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1.5 rounded-xl font-bold text-slate-200">
@@ -228,28 +181,32 @@
         </div>
 
         <div id="game-card" class="bg-slate-900/95 border-2 border-indigo-500/50 rounded-3xl p-5 shadow-2xl text-center space-y-3 backdrop-blur-md">
-            <!-- Barra superior de la tarjeta: Categoría, Pista y Contador -->
             <div class="flex justify-between items-center gap-1">
                 <span id="categoria-tag" class="bg-emerald-600 text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow">Suma</span>
-                <button id="btn-pista" onclick="mostrarPista()" class="bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/60 text-amber-300 text-[11px] font-extrabold px-2.5 py-1 rounded-full transition">
-                    💡 Pista
-                </button>
-                <span id="contador-pregunta" class="text-xs font-extrabold text-amber-300">Reto 1 / 30</span>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="leerRetoEnVozAlta()" title="Escuchar lectura y pregunta" class="bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/60 text-sky-300 text-[11px] font-extrabold px-2 py-1 rounded-full transition">
+                        🔊 Voz
+                    </button>
+                    <button id="btn-pista" onclick="mostrarPista()" class="bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/60 text-amber-300 text-[11px] font-extrabold px-2.5 py-1 rounded-full transition">
+                        💡 Pista
+                    </button>
+                </div>
+                <span id="contador-pregunta" class="text-xs font-extrabold text-amber-300">1 / 30</span>
             </div>
 
-            <!-- Caja de Pista Mágica (Oculta hasta que Itzel pida ayuda) -->
+            <!-- Caja de Pista Mágica -->
             <div id="caja-pista" style="display: none;" class="bg-amber-950/70 border border-amber-400/60 rounded-2xl p-3 text-xs text-amber-200 text-left leading-relaxed">
                 <strong class="text-amber-300">💡 Consejo del Profesor:</strong> <span id="texto-pista"></span>
             </div>
 
-            <!-- Escenario Visual Animado con Dibujos -->
+            <!-- Escenario Visual Animado -->
             <div id="escena-caja" class="escena-visual border border-purple-400/30 rounded-2xl py-3 px-3 flex items-center justify-center min-h-[68px]">
                 <div id="escena-dibujo" class="dibujo-animado text-2xl sm:text-3xl tracking-wider leading-snug">
                     🍎🍎🍎
                 </div>
             </div>
 
-            <!-- Caja de Lectura Mediana / Grande (Solo visible en comprensión lectora) -->
+            <!-- Caja de Lectura Mediana / Grande -->
             <div id="caja-lectura" style="display: none;" class="bg-slate-800/90 border-l-4 border-pink-400 rounded-2xl p-3.5 text-left max-h-48 overflow-y-auto shadow-inner">
                 <div class="text-[10px] font-extrabold uppercase tracking-wider text-pink-300 mb-1">📖 Lee con atención:</div>
                 <p id="texto-lectura" class="text-sm text-slate-100 leading-relaxed font-normal"></p>
@@ -264,19 +221,23 @@
             <div id="opciones-container" class="grid grid-cols-1 gap-2.5"></div>
         </div>
 
-        <!-- Retroalimentación Formativa (Acierto o Explicación del Error) -->
+        <!-- Retroalimentación Formativa -->
         <div id="feedback-box" style="display: none;" class="rounded-2xl p-3 text-center font-bold text-xs leading-relaxed border"></div>
     </section>
 
-    <!-- PANTALLA 5: VICTORIA -->
+    <!-- PANTALLA 5: VICTORIA Y BOLETA DE DOMINIO -->
     <section id="pantalla-victoria" class="max-w-md mx-auto w-full my-auto text-center space-y-4" style="display: none;">
-        <div class="bg-slate-900/95 border-2 border-amber-400 rounded-3xl p-7 shadow-2xl space-y-4">
+        <div class="bg-slate-900/95 border-2 border-amber-400 rounded-3xl p-6 shadow-2xl space-y-3.5">
             <div class="text-5xl avatar-flotante">🏆</div>
             <h2 id="victoria-titulo" class="text-2xl font-extrabold text-amber-300">¡Aula Superada!</h2>
             <div id="victoria-estrellas" class="text-4xl tracking-widest">⭐⭐⭐</div>
             <p id="victoria-detalle" class="text-sm text-slate-200 leading-relaxed"></p>
+            
+            <!-- Boleta de Rendimiento por Materia -->
+            <div id="boleta-areas" class="bg-slate-800/90 border border-indigo-500/40 rounded-2xl p-3 text-left space-y-1.5 text-xs"></div>
+
             <button onclick="volverAlMapa()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 font-extrabold py-3.5 rounded-2xl text-base shadow-lg">
-                ¡Ir a la Siguiente Aula! 🏫
+                ¡Continuar Aventura! 🏫
             </button>
         </div>
     </section>
@@ -285,10 +246,18 @@
         Academia Mágica de Itzel • Aprendiendo paso a paso ❤️
     </footer>
 
+    <!-- Archivos de Grados (Se irán llenando progresivamente) -->
     <script src="datos/grado1.js"></script>
     <script src="datos/grado2.js"></script>
     <script src="datos/grado3.js"></script>
     <script src="datos/grado4.js"></script>
+    <script src="datos/grado5.js"></script>
+    <script src="datos/grado6.js"></script>
+    <script src="datos/sec1.js"></script>
+    <script src="datos/sec2.js"></script>
+    <script src="datos/sec3.js"></script>
+    <script src="datos/sec4.js"></script>
+    <script src="datos/sec5.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
