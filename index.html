@@ -40,7 +40,7 @@
     <section id="pantalla-portada" class="max-w-md mx-auto w-full my-auto text-center anim-entrada-epica">
         <div class="bg-slate-900/90 border-2 border-amber-400/70 rounded-3xl p-7 shadow-2xl space-y-5 backdrop-blur-md relative overflow-hidden">
             <div class="text-xs font-extrabold uppercase tracking-widest text-amber-300 bg-amber-500/20 border border-amber-400/40 inline-block px-4 py-1 rounded-full">
-                ✨ Aventura Especial ✨
+                ✨ Academia Mágica ✨
             </div>
 
             <div class="py-2 avatar-flotante">
@@ -56,7 +56,7 @@
                     ¡Bienvenida, Itzel!
                 </h1>
                 <p class="text-sm text-purple-200 font-medium">
-                    Tu reino de matemáticas y lectura te espera para subir hasta la cima.
+                    Domina suma, resta, multiplicación, división, razonamiento y lectura paso a paso.
                 </p>
             </div>
 
@@ -95,7 +95,7 @@
             </div>
 
             <button onclick="confirmarAvatar()" class="w-full bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:brightness-110 font-extrabold py-3.5 rounded-2xl transition shadow-lg mt-2 text-base">
-                ¡Guardar y ver Mapa! ⛰️
+                ¡Guardar y ver Aulas! 🏫
             </button>
         </div>
     </section>
@@ -104,19 +104,18 @@
     <section id="pantalla-mapa" class="max-w-md mx-auto w-full my-auto space-y-4 text-center" style="display: none;">
         <div class="bg-slate-900/90 border-2 border-indigo-500/50 rounded-3xl p-6 shadow-2xl space-y-4 backdrop-blur">
             <div class="flex justify-between items-center">
-                <h2 class="text-base font-extrabold text-amber-300 uppercase tracking-wider">🏫 Aulas de la Montaña</h2>
+                <h2 class="text-base font-extrabold text-amber-300 uppercase tracking-wider">🏫 Aulas de Aprendizaje</h2>
                 <div class="flex items-center gap-1.5">
                     <button onclick="abrirSelectorAvatar()" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-full border border-purple-500/40 text-purple-200 font-bold">
                         Avatar 🎭
                     </button>
-                    <!-- Botón discreto de acceso para Papá (Programador) -->
                     <button onclick="abrirModalLogin()" title="Acceso Programador" class="text-[11px] bg-slate-800/80 hover:bg-slate-700 px-2 py-1 rounded-full border border-slate-600 text-slate-400">
                         🔑
                     </button>
                 </div>
             </div>
 
-            <!-- Panel de Desarrollador (Se activa solo al iniciar sesión como coby) -->
+            <!-- Panel de Desarrollador (Solo visible con login coby) -->
             <div id="panel-dev-mapa" style="display: none;" class="bg-amber-500/15 border border-amber-400/50 rounded-2xl p-2.5 flex justify-between items-center gap-2">
                 <span class="text-[10px] font-extrabold text-amber-300 uppercase">🛠️ Modo Coby:</span>
                 <div class="flex gap-1.5">
@@ -132,7 +131,7 @@
                 </div>
             </div>
 
-            <p class="text-xs text-slate-300 text-left">Supera los 40 retos ilustrados de cada aula para pasar de grado:</p>
+            <p class="text-xs text-slate-300 text-left">Cada aula incluye las 4 operaciones, razonamiento y lecturas completas:</p>
 
             <div class="space-y-3 py-1">
                 <!-- Aula 4 -->
@@ -140,7 +139,7 @@
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">🏔️</span>
                         <div class="text-left">
-                            <h3 id="titulo-nivel-4" class="font-extrabold text-sm text-slate-400">Aula 4: 4.º de Primaria</h3>
+                            <h3 id="titulo-nivel-4" class="font-extrabold text-sm text-slate-400">Aula 4: Retos Avanzados</h3>
                             <p id="subtitulo-nivel-4" class="text-[10px] text-slate-500">Bloqueado (Supera Aula 3)</p>
                         </div>
                     </div>
@@ -152,7 +151,7 @@
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">🏰</span>
                         <div class="text-left">
-                            <h3 id="titulo-nivel-3" class="font-extrabold text-sm text-slate-400">Aula 3: 3.º de Primaria</h3>
+                            <h3 id="titulo-nivel-3" class="font-extrabold text-sm text-slate-400">Aula 3: Dominio y Tablas</h3>
                             <p id="subtitulo-nivel-3" class="text-[10px] text-slate-500">Bloqueado (Supera Aula 2)</p>
                         </div>
                     </div>
@@ -164,7 +163,7 @@
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">🌲</span>
                         <div class="text-left">
-                            <h3 id="titulo-nivel-2" class="font-extrabold text-sm text-slate-300">Aula 2: 2.º de Primaria</h3>
+                            <h3 id="titulo-nivel-2" class="font-extrabold text-sm text-slate-300">Aula 2: Agilidad Mental</h3>
                             <p id="subtitulo-nivel-2" class="text-[10px] text-slate-400">Bloqueado (Supera Aula 1)</p>
                         </div>
                     </div>
@@ -176,8 +175,8 @@
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">⭐</span>
                         <div class="text-left">
-                            <h3 class="font-extrabold text-sm text-white">Aula 1: 1.º de Primaria</h3>
-                            <p id="subtitulo-nivel-1" class="text-[10px] text-pink-100">20 Matemáticas + 20 Lectura</p>
+                            <h3 class="font-extrabold text-sm text-white">Aula 1: Bases Visuales</h3>
+                            <p id="subtitulo-nivel-1" class="text-[10px] text-pink-100">Suma, Resta, Mult., Div., Raz. y Lectura</p>
                         </div>
                     </div>
                     <span class="text-xs bg-white text-purple-900 px-3.5 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>
@@ -186,27 +185,20 @@
         </div>
     </section>
 
-    <!-- MODAL LOGIN PROGRAMADOR (Oculto por defecto) -->
+    <!-- MODAL LOGIN PROGRAMADOR -->
     <div id="modal-login-dev" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border-2 border-amber-400/70 rounded-3xl p-6 max-w-xs w-full space-y-4 shadow-2xl text-center">
             <div class="text-3xl">🔐</div>
             <h3 class="text-lg font-extrabold text-amber-300">Acceso Programador</h3>
             <p class="text-xs text-slate-300">Ingresa tus credenciales para activar el modo prueba:</p>
-            
             <div class="space-y-2.5 text-left">
                 <input type="text" id="dev-user" placeholder="Usuario" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400">
                 <input type="password" id="dev-pass" placeholder="Contraseña" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400">
             </div>
-
             <p id="login-error-msg" class="text-xs font-bold text-rose-400 min-h-[16px]"></p>
-
             <div class="flex gap-2 pt-1">
-                <button onclick="cerrarModalLogin()" class="flex-1 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-bold text-slate-300">
-                    Cancelar
-                </button>
-                <button onclick="validarLoginDev()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl text-xs font-extrabold">
-                    Entrar
-                </button>
+                <button onclick="cerrarModalLogin()" class="flex-1 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-bold text-slate-300">Cancelar</button>
+                <button onclick="validarLoginDev()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl text-xs font-extrabold">Entrar</button>
             </div>
         </div>
     </div>
@@ -216,12 +208,12 @@
         <div class="bg-slate-900/95 border-2 border-amber-400 rounded-3xl p-8 shadow-2xl space-y-4">
             <div id="anim-avatar-box" class="avatar-flotante"></div>
             <h2 id="anim-titulo" class="text-2xl font-extrabold text-amber-300">¡Entrando al Aula!</h2>
-            <p id="anim-subtitulo" class="text-sm text-purple-200">Preparando dibujos y juegos para Itzel...</p>
+            <p id="anim-subtitulo" class="text-sm text-purple-200">Preparando retos ilustrados y lecturas para Itzel...</p>
             <div class="flex justify-center gap-2 pt-1 text-2xl animate-pulse">⭐ ✨ 🌟 ✨ ⭐</div>
         </div>
     </section>
 
-    <!-- PANTALLA 4: PREGUNTAS ILUSTRADAS DEL RETO -->
+    <!-- PANTALLA 4: PREGUNTAS ILUSTRADAS + PISTA + LECTURAS -->
     <section id="pantalla-juego" class="max-w-md mx-auto w-full my-auto space-y-3" style="display: none;">
         <div class="flex items-center justify-between gap-2">
             <button onclick="volverAlMapa()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1.5 rounded-xl font-bold text-slate-200">
@@ -230,36 +222,50 @@
             <div class="flex-1 bg-slate-950 rounded-full h-3.5 border border-indigo-700 p-0.5 shadow-inner">
                 <div id="barra-exp" class="bg-gradient-to-r from-amber-400 via-pink-500 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
-            <!-- Botón de Test Rápido (Solo visible si iniciaste sesión como coby) -->
             <button id="btn-test-aula" style="display: none;" onclick="testCompletarNivelRapido()" class="bg-amber-500/25 hover:bg-amber-500/45 border border-amber-400/70 text-[10px] px-2.5 py-1.5 rounded-xl font-extrabold text-amber-300">
                 ⚡ Test
             </button>
         </div>
 
-        <div id="game-card" class="bg-slate-900/95 border-2 border-indigo-500/50 rounded-3xl p-5 shadow-2xl text-center space-y-3.5 backdrop-blur-md">
-            <div class="flex justify-between items-center">
-                <span id="categoria-tag" class="bg-emerald-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow">Matemáticas</span>
-                <div class="flex items-center gap-2">
-                    <span id="racha-badge" class="text-[11px] font-extrabold bg-orange-600/30 border border-orange-500/50 text-orange-300 px-2 py-0.5 rounded-lg">🔥 0</span>
-                    <span id="contador-pregunta" class="text-xs font-extrabold text-amber-300">Reto 1 / 40</span>
-                </div>
+        <div id="game-card" class="bg-slate-900/95 border-2 border-indigo-500/50 rounded-3xl p-5 shadow-2xl text-center space-y-3 backdrop-blur-md">
+            <!-- Barra superior de la tarjeta: Categoría, Pista y Contador -->
+            <div class="flex justify-between items-center gap-1">
+                <span id="categoria-tag" class="bg-emerald-600 text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow">Suma</span>
+                <button id="btn-pista" onclick="mostrarPista()" class="bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/60 text-amber-300 text-[11px] font-extrabold px-2.5 py-1 rounded-full transition">
+                    💡 Pista
+                </button>
+                <span id="contador-pregunta" class="text-xs font-extrabold text-amber-300">Reto 1 / 30</span>
+            </div>
+
+            <!-- Caja de Pista Mágica (Oculta hasta que Itzel pida ayuda) -->
+            <div id="caja-pista" style="display: none;" class="bg-amber-950/70 border border-amber-400/60 rounded-2xl p-3 text-xs text-amber-200 text-left leading-relaxed">
+                <strong class="text-amber-300">💡 Consejo del Profesor:</strong> <span id="texto-pista"></span>
             </div>
 
             <!-- Escenario Visual Animado con Dibujos -->
-            <div id="escena-caja" class="escena-visual border border-purple-400/30 rounded-2xl py-3.5 px-3 flex items-center justify-center min-h-[76px]">
+            <div id="escena-caja" class="escena-visual border border-purple-400/30 rounded-2xl py-3 px-3 flex items-center justify-center min-h-[68px]">
                 <div id="escena-dibujo" class="dibujo-animado text-2xl sm:text-3xl tracking-wider leading-snug">
                     🍎🍎🍎
                 </div>
             </div>
+
+            <!-- Caja de Lectura Mediana / Grande (Solo visible en comprensión lectora) -->
+            <div id="caja-lectura" style="display: none;" class="bg-slate-800/90 border-l-4 border-pink-400 rounded-2xl p-3.5 text-left max-h-48 overflow-y-auto shadow-inner">
+                <div class="text-[10px] font-extrabold uppercase tracking-wider text-pink-300 mb-1">📖 Lee con atención:</div>
+                <p id="texto-lectura" class="text-sm text-slate-100 leading-relaxed font-normal"></p>
+            </div>
             
-            <p id="pregunta-texto" class="text-base font-bold text-white min-h-[60px] flex items-center justify-center px-1 leading-relaxed">
+            <!-- Pregunta -->
+            <p id="pregunta-texto" class="text-base font-bold text-white flex items-center justify-center px-1 leading-snug">
                 Cargando reto...
             </p>
 
+            <!-- Opciones -->
             <div id="opciones-container" class="grid grid-cols-1 gap-2.5"></div>
         </div>
 
-        <div id="feedback-msg" class="text-center font-extrabold text-sm min-h-[28px]"></div>
+        <!-- Retroalimentación Formativa (Acierto o Explicación del Error) -->
+        <div id="feedback-box" style="display: none;" class="rounded-2xl p-3 text-center font-bold text-xs leading-relaxed border"></div>
     </section>
 
     <!-- PANTALLA 5: VICTORIA -->
@@ -276,7 +282,7 @@
     </section>
 
     <footer class="text-center text-[11px] text-purple-300/60 pb-1">
-        El Reino Mágico de Itzel • Hecho con mucho amor ❤️
+        Academia Mágica de Itzel • Aprendiendo paso a paso ❤️
     </footer>
 
     <script src="datos/grado1.js"></script>
