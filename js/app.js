@@ -1,22 +1,21 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO ESCALABLE PARA ITZEL (js/app.js)
-   Soporta: 1.º Primaria a 5.º Secundaria, Pistas, Voz y Boleta
+   MOTOR PEDAGÓGICO BLINDADO Y ESCALABLE PARA ITZEL (js/app.js)
    ============================================================ */
 
 let modoProgramadorActivo = false;
 
 const CATALOGO_AULAS = [
-    { num: 1, titulo: "Aula 1: 1.º de Primaria", subtitulo: "Bases Visuales", icono: "⭐", varDatos: () => typeof nivel1_Grado1 !== 'undefined' ? nivel1_Grado1 : null },
-    { num: 2, titulo: "Aula 2: 2.º de Primaria", subtitulo: "Agilidad Mental", icono: "🌲", varDatos: () => typeof nivel2_Grado2 !== 'undefined' ? nivel2_Grado2 : null },
-    { num: 3, titulo: "Aula 3: 3.º de Primaria", subtitulo: "Dominio y Tablas", icono: "🏰", varDatos: () => typeof nivel3_Grado3 !== 'undefined' ? nivel3_Grado3 : null },
-    { num: 4, titulo: "Aula 4: 4.º de Primaria", subtitulo: "Fracciones y Retos", icono: "🏔️", varDatos: () => typeof nivel4_Grado4 !== 'undefined' ? nivel4_Grado4 : null },
-    { num: 5, titulo: "Aula 5: 5.º de Primaria", subtitulo: "Decimales y Lógica", icono: "🚀", varDatos: () => typeof nivel5_Grado5 !== 'undefined' ? nivel5_Grado5 : null },
-    { num: 6, titulo: "Aula 6: 6.º de Primaria", subtitulo: "Proporciones y Pre-Álgebra", icono: "👑", varDatos: () => typeof nivel6_Grado6 !== 'undefined' ? nivel6_Grado6 : null },
-    { num: 7, titulo: "Secundaria 1.º", subtitulo: "Álgebra y Ecuaciones", icono: "⚡", varDatos: () => typeof nivel7_Sec1 !== 'undefined' ? nivel7_Sec1 : null },
-    { num: 8, titulo: "Secundaria 2.º", subtitulo: "Geometría y Funciones", icono: "🔮", varDatos: () => typeof nivel8_Sec2 !== 'undefined' ? nivel8_Sec2 : null },
-    { num: 9, titulo: "Secundaria 3.º", subtitulo: "Razonamiento Avanzado", icono: "🌌", varDatos: () => typeof nivel9_Sec3 !== 'undefined' ? nivel9_Sec3 : null },
-    { num: 10, titulo: "Secundaria 4.º", subtitulo: "Trigonometría y Análisis", icono: "🔥", varDatos: () => typeof nivel10_Sec4 !== 'undefined' ? nivel10_Sec4 : null },
-    { num: 11, titulo: "Secundaria 5.º", subtitulo: "Nivel Pre-Universitario", icono: "🎓", varDatos: () => typeof nivel11_Sec5 !== 'undefined' ? nivel11_Sec5 : null }
+    { num: 1, titulo: "Aula 1: 1.º de Primaria", subtitulo: "Bases Visuales", icono: "⭐", varDatos: () => (typeof nivel1_Grado1 !== 'undefined') ? nivel1_Grado1 : null },
+    { num: 2, titulo: "Aula 2: 2.º de Primaria", subtitulo: "Agilidad Mental", icono: "🌲", varDatos: () => (typeof nivel2_Grado2 !== 'undefined') ? nivel2_Grado2 : null },
+    { num: 3, titulo: "Aula 3: 3.º de Primaria", subtitulo: "Dominio y Tablas", icono: "🏰", varDatos: () => (typeof nivel3_Grado3 !== 'undefined') ? nivel3_Grado3 : null },
+    { num: 4, titulo: "Aula 4: 4.º de Primaria", subtitulo: "Fracciones y Retos", icono: "🏔️", varDatos: () => (typeof nivel4_Grado4 !== 'undefined') ? nivel4_Grado4 : null },
+    { num: 5, titulo: "Aula 5: 5.º de Primaria", subtitulo: "Decimales y Lógica", icono: "🚀", varDatos: () => (typeof nivel5_Grado5 !== 'undefined') ? nivel5_Grado5 : null },
+    { num: 6, titulo: "Aula 6: 6.º de Primaria", subtitulo: "Proporciones y Pre-Álgebra", icono: "👑", varDatos: () => (typeof nivel6_Grado6 !== 'undefined') ? nivel6_Grado6 : null },
+    { num: 7, titulo: "Secundaria 1.º", subtitulo: "Álgebra y Ecuaciones", icono: "⚡", varDatos: () => (typeof nivel7_Sec1 !== 'undefined') ? nivel7_Sec1 : null },
+    { num: 8, titulo: "Secundaria 2.º", subtitulo: "Geometría y Funciones", icono: "🔮", varDatos: () => (typeof nivel8_Sec2 !== 'undefined') ? nivel8_Sec2 : null },
+    { num: 9, titulo: "Secundaria 3.º", subtitulo: "Razonamiento Avanzado", icono: "🌌", varDatos: () => (typeof nivel9_Sec3 !== 'undefined') ? nivel9_Sec3 : null },
+    { num: 10, titulo: "Secundaria 4.º", subtitulo: "Trigonometría y Análisis", icono: "🔥", varDatos: () => (typeof nivel10_Sec4 !== 'undefined') ? nivel10_Sec4 : null },
+    { num: 11, titulo: "Secundaria 5.º", subtitulo: "Nivel Pre-Universitario", icono: "🎓", varDatos: () => (typeof nivel11_Sec5 !== 'undefined') ? nivel11_Sec5 : null }
 ];
 
 let estadoJuego = {
@@ -33,7 +32,7 @@ let totalInicialAula = 30;
 let rachaActual = 0;
 let estadisticasSesion = {};
 
-// --- 1. SONIDOS Y SÍNTESIS DE VOZ ---
+// --- 1. SONIDOS Y VOZ ---
 function reproducirSonido(tipo) {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -71,17 +70,19 @@ function reproducirSonido(tipo) {
 }
 
 function leerRetoEnVozAlta() {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const progreso = estadoJuego.progresoNiveles[nivelJugando];
-    const q = colaPreguntas[progreso.indice];
-    if (!q) return;
+    try {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const progreso = estadoJuego.progresoNiveles[nivelJugando];
+        const q = colaPreguntas[progreso.indice];
+        if (!q) return;
 
-    const textoCompleto = (q.textoLectura ? q.textoLectura + ". " : "") + q.pregunta;
-    const voz = new SpeechSynthesisUtterance(textoCompleto);
-    voz.lang = 'es-PE';
-    voz.rate = 0.95;
-    window.speechSynthesis.speak(voz);
+        const textoCompleto = (q.textoLectura ? q.textoLectura + ". " : "") + q.pregunta;
+        const voz = new SpeechSynthesisUtterance(textoCompleto);
+        voz.lang = 'es-PE';
+        voz.rate = 0.95;
+        window.speechSynthesis.speak(voz);
+    } catch (e) {}
 }
 
 // --- 2. LOGIN PROGRAMADOR (coby / 123456pp) ---
@@ -155,9 +156,12 @@ function testCompletarNivelRapido() {
     finalizarBloqueNivel();
 }
 
-// --- 3. NAVEGACIÓN ---
+// --- 3. NAVEGACIÓN BLINDADA ---
 function mostrarPantalla(idPantalla) {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    try {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    } catch (e) {}
+
     const pantallas = ['pantalla-portada', 'pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
     pantallas.forEach(id => {
         const el = document.getElementById(id);
@@ -173,12 +177,16 @@ function mostrarPantalla(idPantalla) {
 
 function entrarDesdePortada() {
     reproducirSonido('entrada');
-    if (typeof confetti === 'function') {
-        confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
-    }
+    try {
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+        }
+    } catch (e) {}
+
+    // Cambiamos de pantalla primero para garantizar respuesta inmediata
+    mostrarPantalla('pantalla-mapa');
     actualizarHeader();
     actualizarMapaVisual();
-    mostrarPantalla('pantalla-mapa');
 }
 
 function abrirSelectorAvatar() {
@@ -199,44 +207,58 @@ function seleccionarAvatar(tipo, elemento) {
 function confirmarAvatar() {
     reproducirSonido('acierto');
     guardarEstado();
+    mostrarPantalla('pantalla-mapa');
     actualizarHeader();
     actualizarMapaVisual();
-    mostrarPantalla('pantalla-mapa');
 }
 
 function volverAlMapa() {
+    mostrarPantalla('pantalla-mapa');
     actualizarHeader();
     actualizarMapaVisual();
-    mostrarPantalla('pantalla-mapa');
 }
 
 // --- 4. CABECERA Y RENDERIZADO DINÁMICO DEL MAPA ---
 function actualizarHeader() {
     const box = document.getElementById('header-avatar-box');
-    if (estadoJuego.avatar === 'foto') {
-        box.className = "medallon-contenedor w-12 h-12";
-        box.innerHTML = `<div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto object-top w-12 h-12">`;
-    } else {
-        box.className = "text-3xl bg-purple-900/70 p-2 rounded-2xl border-2 border-pink-500/50";
-        box.innerHTML = `<span class="avatar-flotante">${estadoJuego.avatar}</span>`;
+    if (box) {
+        if (estadoJuego.avatar === 'foto') {
+            box.className = "medallon-contenedor w-12 h-12";
+            box.innerHTML = `<div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto object-top w-12 h-12">`;
+        } else {
+            box.className = "text-3xl bg-purple-900/70 p-2 rounded-2xl border-2 border-pink-500/50";
+            box.innerHTML = `<span class="avatar-flotante">${estadoJuego.avatar}</span>`;
+        }
     }
 
-    document.getElementById('score-display').textContent = `${estadoJuego.xp} XP`;
-    document.getElementById('monedas-display').textContent = `🪙 ${estadoJuego.monedas}`;
+    const scoreEl = document.getElementById('score-display');
+    const monedasEl = document.getElementById('monedas-display');
+    if (scoreEl) scoreEl.textContent = `${estadoJuego.xp || 0} XP`;
+    if (monedasEl) monedasEl.textContent = `🪙 ${estadoJuego.monedas || 0}`;
 }
 
 function actualizarMapaVisual() {
-    document.getElementById('nivel-titulo').textContent = "🏫 Aulas de Aprendizaje";
+    const tituloEl = document.getElementById('nivel-titulo');
+    if (tituloEl) tituloEl.textContent = "🏫 Aulas de Aprendizaje";
+
     const contenedor = document.getElementById('lista-aulas-container');
     if (!contenedor) return;
     contenedor.innerHTML = "";
 
-    // Mostrar aulas ordenadas de arriba hacia abajo (de mayor a menor como montaña)
+    if (!estadoJuego.progresoNiveles) estadoJuego.progresoNiveles = {};
+
     const aulasOrdenadas = [...CATALOGO_AULAS].reverse();
 
     aulasOrdenadas.forEach(aula => {
-        const desbloqueado = estadoJuego.nivelMaxDesbloqueado >= aula.num;
-        const tieneContenido = aula.varDatos() !== null;
+        let datosAula = null;
+        try {
+            datosAula = aula.varDatos();
+        } catch (e) {
+            datosAula = null;
+        }
+
+        const desbloqueado = (estadoJuego.nivelMaxDesbloqueado || 1) >= aula.num;
+        const tieneContenido = datosAula !== null && Array.isArray(datosAula.matematicas);
         const prog = estadoJuego.progresoNiveles[aula.num] || { indice: 0, aciertos: 0, completado: false };
 
         const div = document.createElement('div');
@@ -290,13 +312,14 @@ function intentarNivel(num) {
     const aulaInfo = CATALOGO_AULAS.find(a => a.num === num);
     if (!aulaInfo) return;
 
-    const datosGrado = aulaInfo.varDatos();
-    if (!datosGrado) {
-        reproducirSonido('error');
-        return;
+    let datosGrado = null;
+    try {
+        datosGrado = aulaInfo.varDatos();
+    } catch (e) {
+        datosGrado = null;
     }
 
-    if (num > estadoJuego.nivelMaxDesbloqueado) {
+    if (!datosGrado || num > estadoJuego.nivelMaxDesbloqueado) {
         reproducirSonido('error');
         return;
     }
@@ -306,7 +329,7 @@ function intentarNivel(num) {
     }
 
     nivelJugando = num;
-    colaPreguntas = [...datosGrado.matematicas, ...datosGrado.lectura];
+    colaPreguntas = [...(datosGrado.matematicas || []), ...(datosGrado.lectura || [])];
     totalInicialAula = colaPreguntas.length;
     rachaActual = 0;
     estadisticasSesion = {};
@@ -414,7 +437,10 @@ function avanzarSiguienteDespuesDeError() {
 }
 
 function evaluarRespuesta(seleccion, q, btnElem) {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    try {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    } catch (e) {}
+
     const todosBotones = document.querySelectorAll('#opciones-container button');
     todosBotones.forEach(b => b.disabled = true);
 
@@ -446,9 +472,11 @@ function evaluarRespuesta(seleccion, q, btnElem) {
             ? `🔥 ¡Súper racha de ${rachaActual}, Itzel! +5 🪙`
             : "🌟 ¡Excelente, Itzel! Lo resolviste muy bien +5 🪙";
 
-        if (typeof confetti === 'function') {
-            confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
-        }
+        try {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
+            }
+        } catch (e) {}
 
         progreso.indice++;
         actualizarHeader();
@@ -489,7 +517,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
     }
 }
 
-// --- 7. VICTORIA Y BOLETA DE RENDIMIENTO ---
+// --- 7. VICTORIA Y BOLETA ---
 function finalizarBloqueNivel() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const aciertos = progreso.aciertos;
@@ -497,9 +525,11 @@ function finalizarBloqueNivel() {
     const aprobado = porcentaje >= 70;
 
     reproducirSonido('victoria');
-    if (typeof confetti === 'function') {
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-    }
+    try {
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        }
+    } catch (e) {}
 
     let estrellas = "⭐";
     if (porcentaje >= 90) estrellas = "⭐⭐⭐";
@@ -507,10 +537,9 @@ function finalizarBloqueNivel() {
 
     document.getElementById('victoria-estrellas').textContent = estrellas;
 
-    // Generar Boleta de Dominio por Área
     const boletaDiv = document.getElementById('boleta-areas');
     const areasKeys = Object.keys(estadisticasSesion);
-    if (areasKeys.length > 0) {
+    if (boletaDiv && areasKeys.length > 0) {
         boletaDiv.style.display = 'block';
         boletaDiv.innerHTML = `<div class="font-extrabold text-amber-300 uppercase text-[10px] mb-1">📊 Boleta de Aprendizaje:</div>` +
             areasKeys.map(area => {
@@ -519,7 +548,7 @@ function finalizarBloqueNivel() {
                 const color = pct >= 75 ? 'text-emerald-400' : 'text-amber-300';
                 return `<div class="flex justify-between"><span>${area}</span><span class="font-extrabold ${color}">${st.ok}/${st.total} (${pct}%)</span></div>`;
             }).join('');
-    } else {
+    } else if (boletaDiv) {
         boletaDiv.style.display = 'none';
     }
 
@@ -542,16 +571,25 @@ function finalizarBloqueNivel() {
     mostrarPantalla('pantalla-victoria');
 }
 
-// --- 8. PERSISTENCIA ---
+// --- 8. PERSISTENCIA SEGURA ---
 function guardarEstado() {
-    localStorage.setItem('itzel_mundo_v6', JSON.stringify(estadoJuego));
+    try {
+        localStorage.setItem('itzel_mundo_v6', JSON.stringify(estadoJuego));
+    } catch (e) {}
 }
 
 function cargarEstado() {
-    const guardado = localStorage.getItem('itzel_mundo_v6');
-    if (guardado) {
-        estadoJuego = JSON.parse(guardado);
+    try {
+        const guardado = localStorage.getItem('itzel_mundo_v6');
+        if (guardado) {
+            const parsed = JSON.parse(guardado);
+            estadoJuego = { ...estadoJuego, ...parsed };
+            if (!estadoJuego.progresoNiveles) estadoJuego.progresoNiveles = {};
+        }
+    } catch (e) {
+        localStorage.removeItem('itzel_mundo_v6');
     }
+
     if (sessionStorage.getItem('itzel_dev_auth') === 'true') {
         modoProgramadorActivo = true;
     }
