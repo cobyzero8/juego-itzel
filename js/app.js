@@ -1,9 +1,9 @@
 /* ============================================================
-   MOTOR ÉPICO PERSONALIZADO PARA ITZEL (js/app.js)
+   MOTOR ILUSTRADO Y ANIMADO PARA ITZEL (js/app.js)
    ============================================================ */
 
 let estadoJuego = {
-    avatar: 'foto', // Por defecto usa la foto real de Itzel
+    avatar: 'foto',
     xp: 0,
     monedas: 0,
     nivelMaxDesbloqueado: 1,
@@ -54,7 +54,7 @@ function reproducirSonido(tipo) {
     } catch (e) {}
 }
 
-// --- 2. NAVEGACIÓN ENTRE PANTALLAS ---
+// --- 2. NAVEGACIÓN ---
 function mostrarPantalla(idPantalla) {
     const pantallas = ['pantalla-portada', 'pantalla-avatar', 'pantalla-mapa', 'pantalla-animacion', 'pantalla-juego', 'pantalla-victoria'];
     pantallas.forEach(id => {
@@ -107,12 +107,12 @@ function volverAlMapa() {
     mostrarPantalla('pantalla-mapa');
 }
 
-// --- 3. RENDERIZAR AVATAR (FOTO O EMOJI) ---
+// --- 3. CABECERA Y MAPA ---
 function actualizarHeader() {
     const box = document.getElementById('header-avatar-box');
     if (estadoJuego.avatar === 'foto') {
         box.className = "medallon-contenedor w-12 h-12";
-        box.innerHTML = `<div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto w-12 h-12">`;
+        box.innerHTML = `<div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto object-top w-12 h-12">`;
     } else {
         box.className = "text-3xl bg-purple-900/70 p-2 rounded-2xl border-2 border-pink-500/50";
         box.innerHTML = `<span class="avatar-flotante">${estadoJuego.avatar}</span>`;
@@ -123,11 +123,11 @@ function actualizarHeader() {
 }
 
 function actualizarMapaVisual() {
-    document.getElementById('nivel-titulo').textContent = "⛰️ Montaña del Saber";
+    document.getElementById('nivel-titulo').textContent = "🏫 Aulas de la Montaña";
 
     const p1 = estadoJuego.progresoNiveles[1];
     if (p1.completado) {
-        document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Completado! (${p1.aciertos}/40 aciertos)`;
+        document.getElementById('subtitulo-nivel-1').textContent = `✅ ¡Completada! (${p1.aciertos}/40 aciertos)`;
         document.getElementById('tarjeta-nivel-1').classList.remove('nodo-activo');
     } else if (p1.indice > 0) {
         document.getElementById('subtitulo-nivel-1').textContent = `En curso: Reto ${p1.indice + 1} de 40`;
@@ -140,14 +140,14 @@ function actualizarMapaVisual() {
         document.getElementById('titulo-nivel-2').className = "font-extrabold text-sm text-white";
         document.getElementById('subtitulo-nivel-2').className = "text-[10px] text-emerald-100";
         document.getElementById('subtitulo-nivel-2').textContent = p2.completado
-            ? `✅ ¡Completado! (${p2.aciertos}/40 aciertos)`
+            ? `✅ ¡Completada! (${p2.aciertos}/40 aciertos)`
             : (p2.indice > 0 ? `En curso: Reto ${p2.indice + 1} de 40` : "20 Matemáticas + 20 Lectura");
         document.getElementById('badge-nivel-2').className = "text-xs bg-white text-emerald-900 px-3.5 py-1.5 rounded-full font-extrabold shadow";
-        document.getElementById('badge-nivel-2').textContent = "¡JUGAR!";
+        document.getElementById('badge-nivel-2').textContent = "¡ENTRAR!";
     }
 }
 
-// --- 4. INICIAR NIVEL CON ANIMACIÓN ---
+// --- 4. INICIAR AULA ---
 function intentarNivel(num) {
     if (num > estadoJuego.nivelMaxDesbloqueado) {
         reproducirSonido('error');
@@ -169,24 +169,24 @@ function intentarNivel(num) {
 
     const animBox = document.getElementById('anim-avatar-box');
     if (estadoJuego.avatar === 'foto') {
-        animBox.innerHTML = `<div class="medallon-contenedor w-28 h-28"><div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto w-28 h-28"></div>`;
+        animBox.innerHTML = `<div class="medallon-contenedor w-28 h-28"><div class="medallon-halo"></div><img src="itzel.jpg" alt="Itzel" class="medallon-foto object-top w-28 h-28"></div>`;
     } else {
         animBox.innerHTML = `<div class="text-7xl">${estadoJuego.avatar}</div>`;
     }
 
-    document.getElementById('anim-titulo').textContent = `¡Nivel ${num}: ${num}.º de Primaria!`;
+    document.getElementById('anim-titulo').textContent = `¡Aula ${num}: ${num}.º de Primaria!`;
     document.getElementById('anim-subtitulo').textContent = `¡Vamos Itzel! Continuando en reto ${estadoJuego.progresoNiveles[num].indice + 1}...`;
     reproducirSonido('acierto');
     mostrarPantalla('pantalla-animacion');
 
     setTimeout(() => {
         mostrarPantalla('pantalla-juego');
-        document.getElementById('nivel-titulo').textContent = `⛰️ Nivel ${num}: ${num}.º Primaria`;
+        document.getElementById('nivel-titulo').textContent = `🏫 Aula ${num}: ${num}.º Primaria`;
         cargarPreguntaActual();
-    }, 1700);
+    }, 1500);
 }
 
-// --- 5. PREGUNTAS ---
+// --- 5. PREGUNTAS CON ESCENARIO VISUAL ANIMADO ---
 function cargarPreguntaActual() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const idx = progreso.indice;
@@ -205,6 +205,14 @@ function cargarPreguntaActual() {
     catTag.className = esMatematica
         ? "bg-emerald-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow"
         : "bg-pink-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow";
+
+    const escenaCaja = document.getElementById('escena-caja');
+    const escenaDibujo = document.getElementById('escena-dibujo');
+    escenaCaja.classList.remove('escena-visual');
+    void escenaCaja.offsetWidth;
+    escenaCaja.classList.add('escena-visual');
+
+    escenaDibujo.textContent = q.dibujo || (esMatematica ? "🧮 ✨ 🔢 ✨ 📐" : "📖 ✨ 🦄 ✨ 🌟");
 
     document.getElementById('contador-pregunta').textContent = `Reto ${idx + 1} / 40`;
     document.getElementById('pregunta-texto').textContent = q.pregunta;
@@ -271,7 +279,16 @@ function evaluarRespuesta(seleccion, correcta, btnElem) {
     }, 1450);
 }
 
-// --- 6. VICTORIA ---
+// --- 6. MODO TEST RÁPIDO PARA PROBAR EL SIGUIENTE GRADO ---
+function testCompletarNivelRapido() {
+    const progreso = estadoJuego.progresoNiveles[nivelJugando];
+    progreso.aciertos = 38;
+    progreso.indice = 40;
+    estadoJuego.xp += 200;
+    finalizarBloqueNivel();
+}
+
+// --- 7. VICTORIA ---
 function finalizarBloqueNivel() {
     const progreso = estadoJuego.progresoNiveles[nivelJugando];
     const aciertos = progreso.aciertos;
@@ -294,11 +311,11 @@ function finalizarBloqueNivel() {
             estadoJuego.nivelMaxDesbloqueado = nivelJugando + 1;
         }
         estadoJuego.monedas += 50;
-        document.getElementById('victoria-titulo').textContent = `¡Felicidades, Itzel! 🎉`;
-        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos y ganaste +50 monedas extra. ¡Desbloqueaste el siguiente nivel!`;
+        document.getElementById('victoria-titulo').textContent = `¡Aula ${nivelJugando} Superada! 🎉`;
+        document.getElementById('victoria-detalle').textContent = `¡Felicidades Itzel! Lograste ${aciertos} de 40 aciertos y ganaste +50 monedas. ¡Ya puedes entrar a la siguiente aula!`;
     } else {
         document.getElementById('victoria-titulo').textContent = `¡Buen esfuerzo, Itzel! 💪`;
-        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos. Necesitas 30 para abrir el siguiente nivel. ¡Inténtalo de nuevo!`;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertos} de 40 aciertos. Necesitas 30 para abrir la siguiente aula. ¡Inténtalo de nuevo!`;
     }
 
     progreso.indice = 0;
@@ -307,17 +324,16 @@ function finalizarBloqueNivel() {
     mostrarPantalla('pantalla-victoria');
 }
 
-// --- 7. GUARDADO AUTOMÁTICO ---
+// --- 8. PERSISTENCIA ---
 function guardarEstado() {
-    localStorage.setItem('itzel_mundo_v3', JSON.stringify(estadoJuego));
+    localStorage.setItem('itzel_mundo_v4', JSON.stringify(estadoJuego));
 }
 
 function cargarEstado() {
-    const guardado = localStorage.getItem('itzel_mundo_v3');
+    const guardado = localStorage.getItem('itzel_mundo_v4');
     if (guardado) {
         estadoJuego = JSON.parse(guardado);
     }
-    // Siempre mostramos la Portada Épica al abrir el juego para saludarla con su foto y corona
     mostrarPantalla('pantalla-portada');
 }
 
