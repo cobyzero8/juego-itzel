@@ -1,6 +1,6 @@
 /* ============================================================
    MOTOR PEDAGÓGICO ADAPTATIVO PARA ITZEL (js/app.js)
-   Incluye: Pistas Mágicas, Explicación al Fallar y Repetición
+   Con Pizarra de Explicación Obligatoria al Fallar y Repetición
    ============================================================ */
 
 let modoProgramadorActivo = false;
@@ -259,7 +259,6 @@ function intentarNivel(num) {
     }
 
     nivelJugando = num;
-    // Cargar todas las preguntas del aula (matemáticas completas + lecturas completas)
     colaPreguntas = [...datosGrado.matematicas, ...datosGrado.lectura];
     totalInicialAula = colaPreguntas.length;
     rachaActual = 0;
@@ -303,7 +302,6 @@ function cargarPreguntaActual() {
 
     const q = colaPreguntas[idx];
 
-    // Etiqueta de sub-área (Suma, Resta, Multiplicación, División, Razonamiento, Lectura)
     const catTag = document.getElementById('categoria-tag');
     catTag.textContent = q.area || (q.textoLectura ? "Lectura 📖" : "Matemáticas 🧮");
 
@@ -318,18 +316,15 @@ function cargarPreguntaActual() {
     const bgClase = coloresArea[q.area] || "bg-emerald-600";
     catTag.className = `${bgClase} text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow`;
 
-    // Guardar pista actual
-    document.getElementById('texto-pista').textContent = q.pista || "Observa con calma los dibujos y cuenta paso a paso.";
+    document.getElementById('texto-pista').textContent = q.pista || "Lee con calma los datos del problema y resuelve paso a paso.";
 
-    // Escenario Visual Animado
     const escenaCaja = document.getElementById('escena-caja');
     const escenaDibujo = document.getElementById('escena-dibujo');
     escenaCaja.classList.remove('escena-visual');
     void escenaCaja.offsetWidth;
     escenaCaja.classList.add('escena-visual');
-    escenaDibujo.textContent = q.dibujo || "🌟 ✨ 🎓 ✨ 🌟";
+    escenaDibujo.textContent = q.dibujo || "🧠 ✨ 📐 ✨ 🌟";
 
-    // Caja de Lectura Mediana / Grande (si la pregunta trae textoLectura)
     const cajaLectura = document.getElementById('caja-lectura');
     if (q.textoLectura) {
         cajaLectura.style.display = 'block';
@@ -362,6 +357,12 @@ function mostrarPista() {
     } else {
         caja.style.display = 'none';
     }
+}
+
+function avanzarSiguienteDespuesDeError() {
+    const card = document.getElementById('game-card');
+    card.classList.remove('anim-error');
+    cargarPreguntaActual();
 }
 
 function evaluarRespuesta(seleccion, q, btnElem) {
@@ -403,17 +404,25 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         }, 1400);
 
     } else {
-        // ERROR: Enseñar por qué y volver a practicar la pregunta más adelante
+        // ERROR: Mostrar explicación detallada y esperar a que Itzel toque "Entendido"
         reproducirSonido('error');
         btnElem.className = "w-full bg-rose-600 border-2 border-rose-300 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
         todosBotones[q.correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3.5 rounded-2xl font-extrabold text-white text-left px-4 text-sm";
         card.classList.add('anim-error');
 
         rachaActual = 0;
-        feedbackBox.className = "rounded-2xl p-3 text-left font-bold text-xs leading-relaxed border bg-rose-950/85 border-rose-500/60 text-rose-200";
-        feedbackBox.innerHTML = `💡 <strong class="text-amber-300">Aprende el truco:</strong> ${q.explicacion || "Fíjate en la respuesta en verde. ¡La volveremos a practicar en un momento!"}`;
+        const explicacionTexto = q.explicacion || `La respuesta correcta es "${q.opciones[q.correcta]}". ¡Fíjate bien porque la volveremos a practicar!`;
 
-        // Repetición espaciada: si aún no era un repaso, reinsertarla 4 lugares después
+        feedbackBox.className = "rounded-2xl p-4 text-left font-bold text-xs leading-relaxed border-2 bg-rose-950/90 border-amber-400/70 text-rose-100 space-y-3 shadow-xl";
+        feedbackBox.innerHTML = `
+            <div>💡 <strong class="text-amber-300 text-sm">Aprende cómo se resuelve:</strong><br>
+            <span class="text-white font-medium text-xs block mt-1">${explicacionTexto}</span></div>
+            <button onclick="avanzarSiguienteDespuesDeError()" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-2.5 rounded-xl text-xs transition shadow">
+                ¡Entendido! Continuar ➡️
+            </button>
+        `;
+
+        // Repetición espaciada: reinsertar 4 lugares después
         if (!q.esRepaso) {
             const copiaRepaso = { ...q, esRepaso: true };
             const posReinsercion = Math.min(progreso.indice + 4, colaPreguntas.length);
@@ -423,12 +432,6 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         progreso.indice++;
         actualizarHeader();
         guardarEstado();
-
-        // Dar más tiempo (3.5 segundos) para que lea la explicación y aprenda
-        setTimeout(() => {
-            card.classList.remove('anim-error');
-            cargarPreguntaActual();
-        }, 3500);
     }
 }
 
