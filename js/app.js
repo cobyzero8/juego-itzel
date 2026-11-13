@@ -1,11 +1,10 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO V8 (Orden Correcto + Mascota Fija + Tiendita)
+   MOTOR PEDAGÓGICO V9 (Flujo Portada -> Mascota Animada -> Aulas)
    ============================================================ */
 
 let modoProgramadorActivo = false;
 let mundoActivo = 'mate'; // 'mate' | 'ingles'
 
-// Catálogos en orden correcto (De Nivel 1 a Nivel Máximo)
 const CATALOGO_MATE = [
     { num: 1, titulo: "Aula 1: 1.º de Primaria", subtitulo: "Bases Visuales", icono: "⭐", varDatos: () => (typeof nivel1_Grado1 !== 'undefined') ? nivel1_Grado1 : null },
     { num: 2, titulo: "Aula 2: 2.º de Primaria", subtitulo: "Agilidad Mental", icono: "🌲", varDatos: () => (typeof nivel2_Grado2 !== 'undefined') ? nivel2_Grado2 : null },
@@ -31,16 +30,27 @@ const CATALOGO_INGLES = [
     { num: 8, titulo: "Level 8: Mastery Pro C2", subtitulo: "Cima y Fluidez Total", icono: "👑", varDatos: () => (typeof inglesNivel8 !== 'undefined') ? inglesNivel8 : null }
 ];
 
-// DICCIONARIO DE EVOLUCIÓN (Bebé -> Joven -> Adulto)
 const EVOLUCION_MASCOTAS = {
-    'perrito':   { lvl1: '🐾', lvl2: '🐶', lvl3: '🐕' },
-    'gatito':    { lvl1: '🍼', lvl2: '🐱', lvl3: '🐈' },
-    'conejito':  { lvl1: '🥕', lvl2: '🐰', lvl3: '🐇' },
-    'unicornio': { lvl1: '🥚', lvl2: '🦄', lvl3: '🎠' }
+    'perrito': {
+        lvl1: '🐾', lvl2: '🐶', lvl3: '🐕',
+        saludo: "🐶 ¡Guau, guau! ¡Hola Itzel! Seré tu cachorrito fiel y aprenderemos juntos."
+    },
+    'gatito': {
+        lvl1: '🍼', lvl2: '🐱', lvl3: '🐈',
+        saludo: "🐱 ¡Miau! ¡Hola Itzel! Me encanta estudiar contigo, ¡vamos por muchas estrellas!"
+    },
+    'conejito': {
+        lvl1: '🥕', lvl2: '🐰', lvl3: '🐇',
+        saludo: "🐰 ¡Hola Itzel! Saltaremos de alegría con cada respuesta correcta. ¡Tú puedes!"
+    },
+    'unicornio': {
+        lvl1: '🥚', lvl2: '🦄', lvl3: '🎠',
+        saludo: "🦄 ¡Hola Itzel! Con mi magia y tu inteligencia llegaremos hasta el regalo de papá."
+    }
 };
 
 let estadoJuego = {
-    mascota: 'perrito', // Mascota por defecto
+    mascota: null,
     xp: 0,
     monedas: 0,
     nivelMaxDesbloqueado: 1,
@@ -90,6 +100,19 @@ function reproducirSonido(tipo) {
             osc.start();
             osc.stop(ctx.currentTime + 0.65);
         }
+    } catch (e) {}
+}
+
+function hablarEspanol(texto) {
+    try {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const limpio = texto.replace(/[^\p{L}\p{N}\p{P}\p{Z}]/gu, '');
+        const voz = new SpeechSynthesisUtterance(limpio);
+        voz.lang = 'es-PE';
+        voz.rate = 1.0;
+        voz.pitch = 1.15;
+        window.speechSynthesis.speak(voz);
     } catch (e) {}
 }
 
@@ -172,32 +195,60 @@ function practicarVozIngles() {
     recognition.start();
 }
 
-// --- 2. SISTEMA DE MASCOTA VIRTUAL ---
+// --- 2. SISTEMA DE MASCOTA VIRTUAL (PANTALLA 2 ANIMADA) ---
 function abrirSelectorMascota() {
     mostrarPantalla('pantalla-mascota');
+    actualizarHeader();
+
+    if (estadoJuego.mascota && EVOLUCION_MASCOTAS[estadoJuego.mascota]) {
+        const cardPrevia = document.getElementById(`card-mascota-${estadoJuego.mascota}`);
+        if (cardPrevia) {
+            seleccionarMascota(estadoJuego.mascota, cardPrevia, false);
+        }
+    }
 }
 
-function seleccionarMascota(tipo, elemento) {
+function seleccionarMascota(tipo, elemento, conVoz = true) {
     mascotaSeleccionadaTemporal = tipo;
+    estadoJuego.mascota = tipo;
     reproducirSonido('acierto');
+    actualizarHeader();
+
     document.querySelectorAll('.mascota-card').forEach(c => {
         c.style.borderColor = '#475569';
         c.style.backgroundColor = 'rgba(30, 41, 59, 0.9)';
+        c.classList.remove('ring-4', 'ring-emerald-400/50', 'scale-105');
     });
-    elemento.style.borderColor = '#10b981';
-    elemento.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
-    document.getElementById('btn-confirmar-mascota').classList.remove('hidden');
+
+    if (elemento) {
+        elemento.style.borderColor = '#10b981';
+        elemento.style.backgroundColor = 'rgba(16, 185, 129, 0.22)';
+        elemento.classList.add('ring-4', 'ring-emerald-400/50', 'scale-105');
+    }
+
+    const datosMascota = EVOLUCION_MASCOTAS[tipo];
+    const cajaSaludo = document.getElementById('saludo-mascota-elegida');
+    if (cajaSaludo && datosMascota) {
+        cajaSaludo.style.display = 'block';
+        cajaSaludo.textContent = datosMascota.saludo;
+        if (conVoz) hablarEspanol(datosMascota.saludo);
+    }
+
+    const btnConfirmar = document.getElementById('btn-confirmar-mascota');
+    if (btnConfirmar) btnConfirmar.classList.remove('hidden');
 }
 
 function confirmarMascota() {
+    if (!mascotaSeleccionadaTemporal) return;
     estadoJuego.mascota = mascotaSeleccionadaTemporal;
     reproducirSonido('victoria');
+    try { if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } }); } catch (e) {}
     guardarEstado();
     volverAlMapa();
 }
 
 function obtenerIconoMascota() {
-    if (!estadoJuego.mascota) return '🐶'; // Perro por defecto
+    if (!estadoJuego.mascota) return '🥚';
     const xp = estadoJuego.xp || 0;
     const raza = EVOLUCION_MASCOTAS[estadoJuego.mascota];
     if (!raza) return '🐶';
@@ -292,12 +343,15 @@ function cambiarMundo(nuevoMundo) {
     mundoActivo = nuevoMundo;
     reproducirSonido('acierto');
     const tm = document.getElementById('tab-mundo-mate'), ti = document.getElementById('tab-mundo-ingles');
+    const sub = document.getElementById('subtitulo-mapa-mundo');
     if (mundoActivo === 'mate') {
         tm.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow transition";
         ti.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
+        if (sub) sub.textContent = "Supera cada aula con al menos 70% de aciertos para avanzar:";
     } else {
         ti.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow transition";
         tm.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
+        if (sub) sub.textContent = "Escucha, pronuncia y domina el inglés paso a paso:";
     }
     actualizarMapaVisual();
 }
@@ -317,9 +371,7 @@ function mostrarPantalla(idPantalla) {
 function entrarDesdePortada() {
     reproducirSonido('entrada');
     try { if (typeof confetti === 'function') confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } }); } catch (e) {}
-    mostrarPantalla('pantalla-mapa');
-    actualizarHeader();
-    actualizarMapaVisual();
+    abrirSelectorMascota();
 }
 
 function volverAlMapa() {
@@ -336,9 +388,9 @@ function actualizarHeader() {
     const mascotaBox = document.getElementById('header-mascota-box');
     const mascotaIcon = document.getElementById('header-mascota-icon');
     
-    if (estadoJuego.mascota) {
-        if(mascotaBox) mascotaBox.style.display = 'flex';
-        if(mascotaIcon) mascotaIcon.textContent = obtenerIconoMascota();
+    if (mascotaBox && mascotaIcon) {
+        mascotaBox.style.display = 'flex';
+        mascotaIcon.textContent = obtenerIconoMascota();
     }
 }
 
@@ -359,7 +411,6 @@ function actualizarMapaVisual() {
     const maxDesb = (mundoActivo === 'ingles') ? (estadoJuego.inglesMaxDesbloqueado || 1) : (estadoJuego.nivelMaxDesbloqueado || 1);
     const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
 
-    // EL BUCLE AHORA CORRE NORMAL (De Nivel 1 hacia Abajo) - Sin reverse()
     catalogo.forEach(aula => {
         let d = null;
         try { d = aula.varDatos(); } catch (e) {}
@@ -443,9 +494,9 @@ function cargarPreguntaActual() {
     document.getElementById('caja-pista').style.display = 'none';
     document.getElementById('feedback-box').style.display = 'none';
 
-    // Poner mascota en la tarjeta de juego
     document.getElementById('mascota-avatar-juego').textContent = obtenerIconoMascota();
     document.getElementById('mascota-mensaje-juego').textContent = "¡Tú puedes!";
+    document.getElementById('mascota-mensaje-juego').className = "text-[10px] font-extrabold text-emerald-300 mt-2 text-center leading-tight";
 
     if (idx >= colaPreguntas.length) {
         finalizarBloqueNivel();
@@ -522,8 +573,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         btnElem.className = "w-full bg-emerald-600 border-2 border-emerald-300 p-3 rounded-xl font-extrabold text-white text-left px-3 text-sm shadow-lg";
         card.classList.add('anim-acierto');
         
-        // ¡La mascota se pone feliz!
-        if (mascotaImg) mascotaImg.classList.add('scale-125', 'bounce');
+        if (mascotaImg) mascotaImg.classList.add('scale-125', 'animate-bounce');
         if (mascotaMsj) {
             mascotaMsj.textContent = "¡Súper!";
             mascotaMsj.className = "text-[10px] font-black text-emerald-400 mt-2 text-center";
@@ -542,7 +592,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
 
         setTimeout(() => {
             card.classList.remove('anim-acierto');
-            if(mascotaImg) mascotaImg.classList.remove('scale-125', 'bounce');
+            if(mascotaImg) mascotaImg.classList.remove('scale-125', 'animate-bounce');
             cargarPreguntaActual();
         }, 1400);
 
@@ -552,7 +602,6 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         document.querySelectorAll('#opciones-container button')[q.correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3 rounded-xl font-extrabold text-white text-left px-3 text-sm";
         card.classList.add('anim-error');
 
-        // Mascota anima cuando se equivoca
         if (mascotaMsj) {
             mascotaMsj.textContent = "¡Ánimo!";
             mascotaMsj.className = "text-[10px] font-black text-rose-300 mt-2 text-center";
@@ -620,7 +669,6 @@ function finalizarBloqueNivel() {
         guardarEstado();
         actualizarHeader();
         
-        // ¡MAGIA! Ocultamos el juego y abrimos el MINIJUEGO realista de La Tiendita antes de la boleta
         document.getElementById('pantalla-juego').style.display = 'none';
         
         if (typeof iniciarMinijuegoTiendita === 'function') {
@@ -653,11 +701,6 @@ function cargarEstado() {
             if (!estadoJuego.progresoIngles) estadoJuego.progresoIngles = {};
         }
     } catch (e) { localStorage.removeItem('itzel_mundo_v7'); }
-    
-    // Si no tiene mascota guardada de versiones anteriores, asigna una por defecto
-    if (!estadoJuego.mascota) {
-        estadoJuego.mascota = 'perrito';
-    }
 
     if (sessionStorage.getItem('itzel_dev_auth') === 'true') modoProgramadorActivo = true;
     aplicarConfiguracionDev();
