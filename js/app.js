@@ -1,11 +1,11 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO V11
-   Incluye: Mascota Viva + Cuaderno de Errores + Reto Relámpago
+   MOTOR PEDAGÓGICO V12
+   Mascota Viva + Reforzamiento Personalizado + Cuaderno de Errores
    ============================================================ */
 
 let modoProgramadorActivo = false;
 let mundoActivo = 'mate'; // 'mate' | 'ingles'
-let modoSesionEspecial = null; // null | 'relampago' | 'errores'
+let modoSesionEspecial = null; // null | 'relampago' | 'errores' | 'reforzamiento_mate' | 'reforzamiento_rm' | 'reforzamiento_lectura'
 let indiceSesionEspecial = 0;
 let aciertosSesionEspecial = 0;
 
@@ -311,7 +311,6 @@ function iniciarRepasoErrores() {
 function iniciarRetoRelampago() {
     let banco = [];
 
-    // Recolecta preguntas de aulas de Mate desbloqueadas
     const maxM = estadoJuego.nivelMaxDesbloqueado || 1;
     for (let i = 1; i <= maxM; i++) {
         const info = CATALOGO_MATE.find(a => a.num === i);
@@ -323,7 +322,6 @@ function iniciarRetoRelampago() {
         }
     }
 
-    // Recolecta preguntas de niveles de Inglés desbloqueados
     const maxI = estadoJuego.inglesMaxDesbloqueado || 1;
     for (let i = 1; i <= maxI; i++) {
         const info = CATALOGO_INGLES.find(a => a.num === i);
@@ -334,6 +332,10 @@ function iniciarRetoRelampago() {
             } catch (e) {}
         }
     }
+
+    if (typeof BANCO_EXAMEN_MATEMATICA !== 'undefined') banco.push(...BANCO_EXAMEN_MATEMATICA);
+    if (typeof BANCO_RAZONAMIENTO_MATEMATICO !== 'undefined') banco.push(...BANCO_RAZONAMIENTO_MATEMATICO);
+    if (typeof BANCO_LECTURAS_ITZEL !== 'undefined') banco.push(...BANCO_LECTURAS_ITZEL);
 
     if (banco.length === 0) return;
 
@@ -615,9 +617,7 @@ function cargarPreguntaActual() {
     }
 
     const q = colaPreguntas[idx];
-    const area = modoSesionEspecial === 'relampago'
-        ? "⚡ Reto Relámpago"
-        : (modoSesionEspecial === 'errores' ? "🧠 Repaso" : (q.area || (mundoActivo === 'ingles' ? "English 🇺🇸" : "Mate 🧮")));
+    const area = q.area || (mundoActivo === 'ingles' ? "English 🇺🇸" : "Mate 🧮");
 
     const tag = document.getElementById('categoria-tag');
     tag.textContent = area;
@@ -741,26 +741,31 @@ function evaluarRespuesta(seleccion, q, btnElem) {
     }
 }
 
-// --- 8. FINAL DEL AULA O SESIÓN ESPECIAL ---
+// --- 8. FINAL DEL AULA O SESIÓN DE REFORZAMIENTO ---
 function finalizarBloqueNivel() {
     if (modoSesionEspecial) {
         reproducirSonido('victoria');
         try { if (typeof confetti === 'function') confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
 
-        const esRelampago = (modoSesionEspecial === 'relampago');
-        if (esRelampago) {
-            estadoJuego.monedas += 35;
-            estadoJuego.xp += 60;
-        }
+        const bonoMonedas = Math.max(15, aciertosSesionEspecial * 5);
+        const bonoXP = Math.max(30, aciertosSesionEspecial * 15);
+        estadoJuego.monedas += bonoMonedas;
+        estadoJuego.xp += bonoXP;
         guardarEstado();
         actualizarHeader();
 
-        document.getElementById('victoria-estrellas').textContent = esRelampago ? "⚡🏆⚡" : "🧠✨";
-        document.getElementById('victoria-titulo').textContent = esRelampago ? "¡Reto Relámpago Completado!" : "¡Sesión de Repaso Terminada!";
-        document.getElementById('victoria-detalle').textContent = esRelampago
-            ? `Lograste ${aciertosSesionEspecial} de ${colaPreguntas.length} aciertos. ¡Ganaste un Cofre Relámpago de +35 🪙 y +60 XP!`
-            : `Corregiste ${aciertosSesionEspecial} de ${colaPreguntas.length} preguntas de tu cuaderno.`;
-        document.getElementById('mensaje-dinamico-meta').innerHTML = `🐾 <strong>¡Tu mascota está súper feliz!</strong><br>Usa tus monedas en <strong>🛍️ Cuidar Mascota</strong>.`;
+        let tituloEsp = "¡Práctica Completada!";
+        if (modoSesionEspecial === 'relampago') tituloEsp = "⚡ ¡Reto Relámpago Superado!";
+        else if (modoSesionEspecial === 'errores') tituloEsp = "🧠 ¡Cuaderno de Errores Repasado!";
+        else if (modoSesionEspecial === 'reforzamiento_mate') tituloEsp = "🧮 ¡Examen de Matemática Superado!";
+        else if (modoSesionEspecial === 'reforzamiento_rm') tituloEsp = "🧩 ¡Reto de Razonamiento RM Superado!";
+        else if (modoSesionEspecial === 'reforzamiento_lectura') tituloEsp = "📖 ¡Cuentos y Lecturas Completadas!";
+
+        document.getElementById('victoria-estrellas').textContent = "🏆⭐⭐⭐🏆";
+        document.getElementById('victoria-titulo').textContent = tituloEsp;
+        document.getElementById('victoria-detalle').textContent = `Lograste ${aciertosSesionEspecial} de ${colaPreguntas.length} aciertos. ¡Ganaste +${bonoMonedas} 🪙 y +${bonoXP} XP!`;
+        document.getElementById('mensaje-dinamico-meta').innerHTML = `🐾 <strong>¡Excelente entrenamiento, Itzel!</strong><br>Usa tus monedas en <strong>🛍️ Cuidar Mascota</strong> o sigue practicando.`;
+        
         const boleta = document.getElementById('boleta-areas');
         if (boleta) boleta.style.display = 'none';
 
