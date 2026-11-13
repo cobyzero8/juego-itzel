@@ -1,9 +1,13 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO V10 (Mascota Animada Viva + Orden 1..11)
+   MOTOR PEDAGÓGICO V11
+   Incluye: Mascota Viva + Cuaderno de Errores + Reto Relámpago
    ============================================================ */
 
 let modoProgramadorActivo = false;
 let mundoActivo = 'mate'; // 'mate' | 'ingles'
+let modoSesionEspecial = null; // null | 'relampago' | 'errores'
+let indiceSesionEspecial = 0;
+let aciertosSesionEspecial = 0;
 
 const CATALOGO_MATE = [
     { num: 1, titulo: "Aula 1: 1.º de Primaria", subtitulo: "Bases Visuales", icono: "⭐", varDatos: () => (typeof nivel1_Grado1 !== 'undefined') ? nivel1_Grado1 : null },
@@ -37,7 +41,10 @@ let estadoJuego = {
     nivelMaxDesbloqueado: 1,
     progresoNiveles: {},
     inglesMaxDesbloqueado: 1,
-    progresoIngles: {}
+    progresoIngles: {},
+    erroresPendientes: [],
+    accesoriosComprados: [],
+    accesoriosEquipados: []
 };
 
 let mascotaSeleccionadaTemporal = null;
@@ -97,12 +104,17 @@ function hablarEspanol(texto) {
     } catch (e) {}
 }
 
+function obtenerPreguntaActualActiva() {
+    if (modoSesionEspecial) return colaPreguntas[indiceSesionEspecial];
+    const progObj = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+    return colaPreguntas[progObj[nivelJugando].indice];
+}
+
 function pronunciarIngles(velocidad = 0.95) {
     try {
         if (!('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
-        const progObj = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
-        const q = colaPreguntas[progObj[nivelJugando].indice];
+        const q = obtenerPreguntaActualActiva();
         if (!q || !q.audioIngles) return;
         const voz = new SpeechSynthesisUtterance(q.audioIngles);
         voz.lang = 'en-US';
@@ -115,10 +127,9 @@ function leerRetoEnVozAlta() {
     try {
         if (!('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
-        const progObj = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
-        const q = colaPreguntas[progObj[nivelJugando].indice];
+        const q = obtenerPreguntaActualActiva();
         if (!q) return;
-        if (mundoActivo === 'ingles' && q.audioIngles) {
+        if (q.audioIngles) {
             pronunciarIngles(0.95);
             return;
         }
@@ -141,8 +152,7 @@ function practicarVozIngles() {
         return;
     }
 
-    const progObj = estadoJuego.progresoIngles[nivelJugando];
-    const q = colaPreguntas[progObj.indice];
+    const q = obtenerPreguntaActualActiva();
     if (!q || !q.audioIngles) return;
 
     const recognition = new SpeechRec();
@@ -176,24 +186,21 @@ function practicarVozIngles() {
     recognition.start();
 }
 
-// --- 2. SISTEMA DE MASCOTA VIVA (PANTALLA 2 Y ESCENARIO DE JUEGO) ---
+// --- 2. SISTEMA DE MASCOTA VIVA ---
 function abrirSelectorMascota() {
     mostrarPantalla('pantalla-mascota');
     actualizarHeader();
 
-    // Dibuja los 4 personajes animados en sus tarjetas de adopción
     ['gatito', 'perrito', 'conejito', 'unicornio'].forEach(tipo => {
         const box = document.getElementById(`preview-mascota-${tipo}`);
         if (box && typeof generarSVGMascota === 'function') {
-            box.innerHTML = generarSVGMascota(tipo, 'idle', estadoJuego.xp || 0, false);
+            box.innerHTML = generarSVGMascota(tipo, 'idle', estadoJuego.xp || 0, false, estadoJuego.accesoriosEquipados || []);
         }
     });
 
     const actual = DATOS_MASCOTAS[estadoJuego.mascota] ? estadoJuego.mascota : 'gatito';
     const cardPrevia = document.getElementById(`card-mascota-${actual}`);
-    if (cardPrevia) {
-        seleccionarMascota(actual, cardPrevia, false);
-    }
+    if (cardPrevia) seleccionarMascota(actual, cardPrevia, false);
 }
 
 function seleccionarMascota(tipo, elemento, conVoz = true) {
@@ -202,7 +209,6 @@ function seleccionarMascota(tipo, elemento, conVoz = true) {
     reproducirSonido('acierto');
     actualizarHeader();
 
-    // Resetea las 4 tarjetas
     ['gatito', 'perrito', 'conejito', 'unicornio'].forEach(t => {
         const c = document.getElementById(`card-mascota-${t}`);
         const prev = document.getElementById(`preview-mascota-${t}`);
@@ -211,7 +217,7 @@ function seleccionarMascota(tipo, elemento, conVoz = true) {
             c.classList.remove('ring-4', 'ring-emerald-400/60', 'scale-105');
         }
         if (prev && typeof generarSVGMascota === 'function') {
-            prev.innerHTML = generarSVGMascota(t, t === tipo ? 'happy' : 'idle', estadoJuego.xp || 0, false);
+            prev.innerHTML = generarSVGMascota(t, t === tipo ? 'happy' : 'idle', estadoJuego.xp || 0, false, estadoJuego.accesoriosEquipados || []);
         }
     });
 
@@ -247,7 +253,7 @@ function actualizarMascotaEnJuego(emocion = 'idle', frase = "¡Tú puedes, Itzel
     const etapaTag = document.getElementById('mascota-etapa-tag');
 
     if (escenario && typeof generarSVGMascota === 'function') {
-        escenario.innerHTML = generarSVGMascota(estadoJuego.mascota, emocion, estadoJuego.xp || 0, false);
+        escenario.innerHTML = generarSVGMascota(estadoJuego.mascota, emocion, estadoJuego.xp || 0, false, estadoJuego.accesoriosEquipados || []);
     }
     if (globo) {
         globo.textContent = frase;
@@ -264,7 +270,87 @@ function actualizarMascotaEnJuego(emocion = 'idle', frase = "¡Tú puedes, Itzel
     }
 }
 
-// --- 3. LOGIN PROGRAMADOR ---
+// --- 3. CUADERNO DE ERRORES Y RETO RELÁMPAGO ---
+function guardarErrorEnCuaderno(q) {
+    if (!estadoJuego.erroresPendientes) estadoJuego.erroresPendientes = [];
+    const yaExiste = estadoJuego.erroresPendientes.some(item => item.pregunta === q.pregunta);
+    if (!yaExiste) {
+        estadoJuego.erroresPendientes.push({ ...q, esRepaso: false });
+        if (estadoJuego.erroresPendientes.length > 25) {
+            estadoJuego.erroresPendientes.shift();
+        }
+    }
+}
+
+function iniciarRepasoErrores() {
+    if (!estadoJuego.erroresPendientes || estadoJuego.erroresPendientes.length === 0) {
+        reproducirSonido('acierto');
+        mostrarModalReforzamiento(`
+            <div class="text-center space-y-4">
+                <span class="text-5xl block">🌟</span>
+                <h2 class="text-xl font-black text-emerald-400">¡Cuaderno Limpio!</h2>
+                <p class="text-xs text-slate-200">No tienes errores pendientes por repasar. ¡Sigue así, Itzel!</p>
+                <button onclick="cerrarModalReforzamiento()" class="w-full bg-emerald-600 text-white font-black py-3 rounded-2xl text-sm">Volver</button>
+            </div>
+        `);
+        return;
+    }
+
+    modoSesionEspecial = 'errores';
+    indiceSesionEspecial = 0;
+    aciertosSesionEspecial = 0;
+    rachaActual = 0;
+    estadisticasSesion = {};
+    colaPreguntas = [...estadoJuego.erroresPendientes];
+
+    reproducirSonido('entrada');
+    mostrarPantalla('pantalla-juego');
+    cargarPreguntaActual();
+}
+
+function iniciarRetoRelampago() {
+    let banco = [];
+
+    // Recolecta preguntas de aulas de Mate desbloqueadas
+    const maxM = estadoJuego.nivelMaxDesbloqueado || 1;
+    for (let i = 1; i <= maxM; i++) {
+        const info = CATALOGO_MATE.find(a => a.num === i);
+        if (info) {
+            try {
+                const d = info.varDatos();
+                if (d) banco.push(...(d.matematicas || []), ...(d.lectura || []));
+            } catch (e) {}
+        }
+    }
+
+    // Recolecta preguntas de niveles de Inglés desbloqueados
+    const maxI = estadoJuego.inglesMaxDesbloqueado || 1;
+    for (let i = 1; i <= maxI; i++) {
+        const info = CATALOGO_INGLES.find(a => a.num === i);
+        if (info) {
+            try {
+                const d = info.varDatos();
+                if (d) banco.push(...(d.retos || []));
+            } catch (e) {}
+        }
+    }
+
+    if (banco.length === 0) return;
+
+    const mezcladas = banco.sort(() => Math.random() - 0.5).slice(0, 5);
+    modoSesionEspecial = 'relampago';
+    indiceSesionEspecial = 0;
+    aciertosSesionEspecial = 0;
+    rachaActual = 0;
+    estadisticasSesion = {};
+    colaPreguntas = mezcladas;
+
+    reproducirSonido('entrada');
+    mostrarPantalla('pantalla-juego');
+    cargarPreguntaActual();
+}
+
+// --- 4. LOGIN PROGRAMADOR ---
 function abrirModalLogin() {
     const modal = document.getElementById('modal-login-dev');
     if (!modal) return;
@@ -309,6 +395,12 @@ function testReiniciarJuego() {
 }
 function testCompletarNivelRapido() {
     if (!modoProgramadorActivo) return;
+    if (modoSesionEspecial) {
+        indiceSesionEspecial = colaPreguntas.length;
+        aciertosSesionEspecial = colaPreguntas.length;
+        finalizarBloqueNivel();
+        return;
+    }
     const progObj = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
     const progreso = progObj[nivelJugando];
     progreso.aciertos = totalInicialAula;
@@ -317,7 +409,7 @@ function testCompletarNivelRapido() {
     finalizarBloqueNivel();
 }
 
-// --- 4. CÁLCULO DE META Y NAVEGACIÓN ---
+// --- 5. CÁLCULO DE META Y NAVEGACIÓN ---
 function calcularProgresoTotal() {
     let mate = 0;
     for (let i = 1; i <= 11; i++) if (estadoJuego.progresoNiveles[i]?.completado) mate++;
@@ -351,12 +443,12 @@ function cambiarMundo(nuevoMundo) {
     const tm = document.getElementById('tab-mundo-mate'), ti = document.getElementById('tab-mundo-ingles');
     const sub = document.getElementById('subtitulo-mapa-mundo');
     if (mundoActivo === 'mate') {
-        tm.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow transition";
-        ti.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
+        tm.className = "py-2 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow transition";
+        ti.className = "py-2 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
         if (sub) sub.textContent = "Supera cada aula con al menos 70% de aciertos para avanzar:";
     } else {
-        ti.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow transition";
-        tm.className = "py-2.5 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
+        ti.className = "py-2 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow transition";
+        tm.className = "py-2 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition";
         if (sub) sub.textContent = "Escucha, pronuncia y domina el inglés paso a paso:";
     }
     actualizarMapaVisual();
@@ -381,12 +473,13 @@ function entrarDesdePortada() {
 }
 
 function volverAlMapa() {
+    modoSesionEspecial = null;
     mostrarPantalla('pantalla-mapa');
     actualizarHeader();
     actualizarMapaVisual();
 }
 
-// --- 5. ACTUALIZAR VISUALES (Header y Mapa) ---
+// --- 6. ACTUALIZAR VISUALES (Header y Mapa) ---
 function actualizarHeader() {
     if (document.getElementById('score-display')) document.getElementById('score-display').textContent = `${estadoJuego.xp || 0} XP`;
     if (document.getElementById('monedas-display')) document.getElementById('monedas-display').textContent = `🪙 ${estadoJuego.monedas || 0}`;
@@ -395,7 +488,7 @@ function actualizarHeader() {
     const etapaHeader = document.getElementById('etapa-mascota-header');
 
     if (mascotaIcon && typeof generarSVGMascota === 'function') {
-        mascotaIcon.innerHTML = generarSVGMascota(estadoJuego.mascota, 'idle', estadoJuego.xp || 0, true);
+        mascotaIcon.innerHTML = generarSVGMascota(estadoJuego.mascota, 'idle', estadoJuego.xp || 0, true, estadoJuego.accesoriosEquipados || []);
     }
     if (etapaHeader && typeof obtenerEtapaMascota === 'function') {
         etapaHeader.textContent = obtenerEtapaMascota(estadoJuego.xp || 0).nombre;
@@ -404,7 +497,18 @@ function actualizarHeader() {
 
 function actualizarMapaVisual() {
     if (document.getElementById('nivel-titulo')) document.getElementById('nivel-titulo').textContent = (mundoActivo === 'ingles') ? "🇺🇸 Academia de Inglés" : "🏫 Mate y Lectura";
-    
+
+    const btnErr = document.getElementById('btn-repasar-errores');
+    const cantErr = (estadoJuego.erroresPendientes || []).length;
+    if (btnErr) {
+        btnErr.textContent = `🧠 Mis Errores (${cantErr})`;
+        if (cantErr > 0) {
+            btnErr.className = "bg-rose-950/90 hover:bg-rose-900 border-2 border-rose-400 text-rose-200 font-black text-xs py-2.5 px-3 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition transform active:scale-95";
+        } else {
+            btnErr.className = "bg-slate-800 hover:bg-slate-700 border border-indigo-400/50 text-indigo-200 font-extrabold text-xs py-2.5 px-3 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition";
+        }
+    }
+
     const prog = calcularProgresoTotal();
     const textoMeta = document.getElementById('estado-meta-texto');
     if (textoMeta) {
@@ -457,8 +561,9 @@ function actualizarMapaVisual() {
     });
 }
 
-// --- 6. JUEGO ---
+// --- 7. JUEGO ---
 function intentarNivel(num) {
+    modoSesionEspecial = null;
     const ct = mundoActivo === 'ingles' ? CATALOGO_INGLES : CATALOGO_MATE;
     const md = mundoActivo === 'ingles' ? estadoJuego.inglesMaxDesbloqueado : estadoJuego.nivelMaxDesbloqueado;
     const mp = mundoActivo === 'ingles' ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
@@ -495,14 +600,14 @@ function intentarNivel(num) {
 }
 
 function cargarPreguntaActual() {
-    const mp = mundoActivo === 'ingles' ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
-    const prog = mp[nivelJugando];
-    const idx = prog.indice;
+    const idx = modoSesionEspecial
+        ? indiceSesionEspecial
+        : (mundoActivo === 'ingles' ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles)[nivelJugando].indice;
 
     document.getElementById('caja-pista').style.display = 'none';
     document.getElementById('feedback-box').style.display = 'none';
 
-    actualizarMascotaEnJuego('idle', "¡Tú puedes, Itzel!");
+    actualizarMascotaEnJuego('idle', modoSesionEspecial === 'errores' ? "¡Tú puedes corregirlo!" : "¡Tú puedes, Itzel!");
 
     if (idx >= colaPreguntas.length) {
         finalizarBloqueNivel();
@@ -510,7 +615,10 @@ function cargarPreguntaActual() {
     }
 
     const q = colaPreguntas[idx];
-    const area = q.area || (mundoActivo === 'ingles' ? "English 🇺🇸" : "Mate 🧮");
+    const area = modoSesionEspecial === 'relampago'
+        ? "⚡ Reto Relámpago"
+        : (modoSesionEspecial === 'errores' ? "🧠 Repaso" : (q.area || (mundoActivo === 'ingles' ? "English 🇺🇸" : "Mate 🧮")));
+
     const tag = document.getElementById('categoria-tag');
     tag.textContent = area;
 
@@ -520,7 +628,7 @@ function cargarPreguntaActual() {
     document.getElementById('escena-dibujo').textContent = q.dibujo || "🌟";
 
     const pi = document.getElementById('panel-audio-ingles');
-    if (mundoActivo === 'ingles' && q.audioIngles) {
+    if (q.audioIngles) {
         pi.style.display = 'block';
         document.getElementById('ingles-frase-destacada').textContent = `"${q.audioIngles}"`;
         document.getElementById('ingles-fonetica').textContent = q.fonetica || "";
@@ -563,8 +671,6 @@ function evaluarRespuesta(seleccion, q, btnElem) {
 
     const card = document.getElementById('game-card');
     const fb = document.getElementById('feedback-box');
-    const mp = mundoActivo === 'ingles' ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
-    const prog = mp[nivelJugando];
     const area = q.area || "General";
 
     if (!estadisticasSesion[area]) estadisticasSesion[area] = { total: 0, ok: 0 };
@@ -576,18 +682,31 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         btnElem.className = "w-full bg-emerald-600 border-2 border-emerald-300 p-3 rounded-xl font-extrabold text-white text-left px-3 text-sm shadow-lg";
         card.classList.add('anim-acierto');
 
-        rachaActual++; prog.aciertos++; estadisticasSesion[area].ok++;
-        estadoJuego.xp += 30; estadoJuego.monedas += 5;
+        rachaActual++; estadisticasSesion[area].ok++;
+        estadoJuego.xp += 30;
+        estadoJuego.monedas += (modoSesionEspecial === 'errores' ? 10 : 5);
 
-        // La mascota salta feliz con ojos de estrellas y corazones
         actualizarMascotaEnJuego('happy', rachaActual >= 3 ? `🔥 ¡Racha x${rachaActual}!` : "¡Súper, Itzel! 🌟");
 
         fb.className = "rounded-2xl p-2.5 text-center font-bold text-[11px] leading-relaxed border bg-emerald-950/80 border-emerald-500/50 text-emerald-300 mt-2";
-        fb.textContent = rachaActual >= 3 ? `🔥 ¡Racha de ${rachaActual}! +5 🪙` : "🌟 ¡Excelente! +5 🪙";
+        fb.textContent = modoSesionEspecial === 'errores'
+            ? "🌟 ¡Error corregido y aprendido! +10 🪙"
+            : (rachaActual >= 3 ? `🔥 ¡Racha de ${rachaActual}! +5 🪙` : "🌟 ¡Excelente! +5 🪙");
 
         try { if (typeof confetti === 'function') confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } }); } catch (e) {}
 
-        prog.indice++;
+        if (modoSesionEspecial) {
+            aciertosSesionEspecial++;
+            indiceSesionEspecial++;
+            if (modoSesionEspecial === 'errores' && estadoJuego.erroresPendientes) {
+                estadoJuego.erroresPendientes = estadoJuego.erroresPendientes.filter(e => e.pregunta !== q.pregunta);
+            }
+        } else {
+            const mp = mundoActivo === 'ingles' ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+            mp[nivelJugando].aciertos++;
+            mp[nivelJugando].indice++;
+        }
+
         actualizarHeader(); guardarEstado();
 
         setTimeout(() => {
@@ -601,24 +720,55 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         document.querySelectorAll('#opciones-container button')[q.correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3 rounded-xl font-extrabold text-white text-left px-3 text-sm";
         card.classList.add('anim-error');
 
-        // La mascota baja sus orejitas y la anima con cariño
         actualizarMascotaEnJuego('sad', "¡No pasa nada, tú puedes! 💪");
+        guardarErrorEnCuaderno(q);
 
         rachaActual = 0;
         fb.className = "rounded-2xl p-3 text-left font-bold text-[11px] leading-relaxed border-2 bg-rose-950/90 border-amber-400/70 text-rose-100 space-y-2 shadow-xl mt-2";
         fb.innerHTML = `<div>💡 <strong class="text-amber-300">Respuesta correcta:</strong><br><span class="text-white">${q.explicacion || q.opciones[q.correcta]}</span></div>
             <button onclick="avanzarSiguienteDespuesDeError()" class="w-full bg-amber-400 text-slate-950 font-black py-2 rounded-lg mt-1 shadow">¡Entendido! ➡️</button>`;
 
-        if (!q.esRepaso) {
-            colaPreguntas.splice(Math.min(prog.indice + 4, colaPreguntas.length), 0, { ...q, esRepaso: true });
+        if (modoSesionEspecial) {
+            indiceSesionEspecial++;
+        } else {
+            const mp = mundoActivo === 'ingles' ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
+            if (!q.esRepaso) {
+                colaPreguntas.splice(Math.min(mp[nivelJugando].indice + 4, colaPreguntas.length), 0, { ...q, esRepaso: true });
+            }
+            mp[nivelJugando].indice++;
         }
-        prog.indice++;
         actualizarHeader(); guardarEstado();
     }
 }
 
-// --- 7. FINAL DEL AULA Y MINIJUEGO LA TIENDITA ---
+// --- 8. FINAL DEL AULA O SESIÓN ESPECIAL ---
 function finalizarBloqueNivel() {
+    if (modoSesionEspecial) {
+        reproducirSonido('victoria');
+        try { if (typeof confetti === 'function') confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
+
+        const esRelampago = (modoSesionEspecial === 'relampago');
+        if (esRelampago) {
+            estadoJuego.monedas += 35;
+            estadoJuego.xp += 60;
+        }
+        guardarEstado();
+        actualizarHeader();
+
+        document.getElementById('victoria-estrellas').textContent = esRelampago ? "⚡🏆⚡" : "🧠✨";
+        document.getElementById('victoria-titulo').textContent = esRelampago ? "¡Reto Relámpago Completado!" : "¡Sesión de Repaso Terminada!";
+        document.getElementById('victoria-detalle').textContent = esRelampago
+            ? `Lograste ${aciertosSesionEspecial} de ${colaPreguntas.length} aciertos. ¡Ganaste un Cofre Relámpago de +35 🪙 y +60 XP!`
+            : `Corregiste ${aciertosSesionEspecial} de ${colaPreguntas.length} preguntas de tu cuaderno.`;
+        document.getElementById('mensaje-dinamico-meta').innerHTML = `🐾 <strong>¡Tu mascota está súper feliz!</strong><br>Usa tus monedas en <strong>🛍️ Cuidar Mascota</strong>.`;
+        const boleta = document.getElementById('boleta-areas');
+        if (boleta) boleta.style.display = 'none';
+
+        modoSesionEspecial = null;
+        mostrarPantalla('pantalla-victoria');
+        return;
+    }
+
     const mp = mundoActivo === 'ingles' ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
     const prog = mp[nivelJugando];
     const aciertos = prog.aciertos;
@@ -669,7 +819,7 @@ function finalizarBloqueNivel() {
         document.getElementById('pantalla-juego').style.display = 'none';
         
         if (typeof iniciarMinijuegoTiendita === 'function') {
-            iniciarMinijuegoTiendita();
+            iniciarMinijuegoTiendita(1, true);
         } else {
             mostrarPantalla('pantalla-victoria');
         }
@@ -684,7 +834,7 @@ function finalizarBloqueNivel() {
     }
 }
 
-// --- 8. PERSISTENCIA ---
+// --- 9. PERSISTENCIA ---
 function guardarEstado() {
     try { localStorage.setItem('itzel_mundo_v7', JSON.stringify(estadoJuego)); } catch (e) {}
 }
@@ -696,6 +846,9 @@ function cargarEstado() {
             estadoJuego = { ...estadoJuego, ...JSON.parse(guardado) };
             if (!estadoJuego.progresoNiveles) estadoJuego.progresoNiveles = {};
             if (!estadoJuego.progresoIngles) estadoJuego.progresoIngles = {};
+            if (!estadoJuego.erroresPendientes) estadoJuego.erroresPendientes = [];
+            if (!estadoJuego.accesoriosComprados) estadoJuego.accesoriosComprados = [];
+            if (!estadoJuego.accesoriosEquipados) estadoJuego.accesoriosEquipados = [];
         }
     } catch (e) { localStorage.removeItem('itzel_mundo_v7'); }
 
