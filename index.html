@@ -10,17 +10,16 @@
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden select-none">
 
-    <!-- Fondo estrellado -->
     <div id="estrellas-bg" class="fixed inset-0 pointer-events-none z-0"></div>
 
-    <!-- CABECERA SUPERIOR (Foto de Itzel + Cara Animada de su Mascota) -->
+    <!-- CABECERA SUPERIOR -->
     <header id="main-header" style="display: none;" class="w-full max-w-lg flex justify-between items-center mb-4 z-10 bg-slate-900/95 p-3 rounded-3xl border border-indigo-500/40 shadow-2xl backdrop-blur-md">
         <div class="flex items-center gap-2.5">
             <div class="medallon-contenedor w-12 h-12 shrink-0">
                 <div class="medallon-halo"></div>
                 <img src="itzel.jpg" alt="Itzel" class="medallon-foto object-top w-12 h-12 border-2 border-pink-400">
             </div>
-            <div id="header-mascota-box" onclick="abrirSelectorMascota()" title="Cambiar mascota" class="cursor-pointer bg-sky-950/90 border-2 border-emerald-400 p-1 rounded-full shadow-lg flex items-center justify-center w-11 h-11 transform hover:scale-110 transition shrink-0">
+            <div id="header-mascota-box" onclick="abrirTiendaMascotas()" title="Cuidar y vestir mascota" class="cursor-pointer bg-sky-950/90 border-2 border-emerald-400 p-1 rounded-full shadow-lg flex items-center justify-center w-11 h-11 transform hover:scale-110 transition shrink-0">
                 <div id="header-mascota-icon" class="w-9 h-9"></div>
             </div>
             <div>
@@ -30,7 +29,7 @@
             </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-            <div class="text-right bg-amber-950/70 px-2.5 py-1.5 rounded-xl border border-amber-400/40">
+            <div onclick="abrirTiendaMascotas()" class="cursor-pointer text-right bg-amber-950/70 hover:bg-amber-900/80 px-2.5 py-1.5 rounded-xl border border-amber-400/40 transition">
                 <span id="monedas-display" class="text-xs font-black text-amber-400">🪙 0</span>
             </div>
             <div class="text-right bg-slate-950/90 px-2.5 py-1.5 rounded-xl border border-emerald-400/30">
@@ -113,13 +112,13 @@
             </button>
         </section>
 
-        <!-- 3. MAPA DE AULAS -->
-        <section id="pantalla-mapa" style="display: none;" class="bg-slate-900/95 border border-indigo-500/40 rounded-3xl p-5 shadow-2xl space-y-4">
+        <!-- 3. MAPA DE AULAS Y BARRA DE REFORZAMIENTO -->
+        <section id="pantalla-mapa" style="display: none;" class="bg-slate-900/95 border border-indigo-500/40 rounded-3xl p-5 shadow-2xl space-y-3.5">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-black text-amber-300">🏫 MI ACADEMIA</h2>
-                <div class="flex items-center gap-2">
-                    <button onclick="abrirSelectorMascota()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-emerald-500/40 px-2.5 py-1.5 rounded-full font-bold text-emerald-200 transition shadow">
-                        Mi Mascota 🐾
+                <div class="flex items-center gap-1.5">
+                    <button onclick="abrirSelectorMascota()" class="text-[11px] bg-slate-800 hover:bg-slate-700 border border-slate-600 px-2.5 py-1.5 rounded-full font-bold text-slate-200 transition shadow">
+                        Cambiar 🐾
                     </button>
                     <button onclick="abrirModalLogin()" title="Acceso Programador" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600/60 px-2.5 py-1.5 rounded-full font-bold text-slate-300 transition shadow">
                         🔑
@@ -127,24 +126,42 @@
                 </div>
             </div>
 
+            <!-- BOTONERA DE REFORZAMIENTO Y CUIDADO DE MASCOTA -->
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="abrirZonaPractica()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-black text-xs py-2.5 px-3 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition transform active:scale-95">
+                    🎮 Zona de Práctica
+                </button>
+                <button onclick="abrirTiendaMascotas()" class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 text-white font-black text-xs py-2.5 px-3 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition transform active:scale-95">
+                    🛍️ Cuidar Mascota
+                </button>
+                <button onclick="iniciarRetoRelampago()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-black text-xs py-2.5 px-3 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition transform active:scale-95">
+                    ⚡ Reto Relámpago
+                </button>
+                <button id="btn-repasar-errores" onclick="iniciarRepasoErrores()" class="bg-slate-800 hover:bg-slate-700 border border-indigo-400/50 text-indigo-200 font-extrabold text-xs py-2.5 px-3 rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition transform active:scale-95">
+                    🧠 Mis Errores (0)
+                </button>
+            </div>
+
+            <!-- PESTAÑAS MATE / INGLÉS -->
             <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-indigo-500/30">
-                <button id="tab-mundo-mate" onclick="cambiarMundo('mate')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow transition">
+                <button id="tab-mundo-mate" onclick="cambiarMundo('mate')" class="py-2 px-2 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow transition">
                     🧮📖 Mate y Lectura
                 </button>
-                <button id="tab-mundo-ingles" onclick="cambiarMundo('ingles')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition">
+                <button id="tab-mundo-ingles" onclick="cambiarMundo('ingles')" class="py-2 px-2 rounded-xl font-extrabold text-xs text-slate-300 hover:bg-slate-800 transition">
                     🇺🇸 Inglés con Voz
                 </button>
             </div>
 
-            <button onclick="abrirPremioFinal()" class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-400 hover:to-pink-500 text-slate-950 font-black py-3 px-4 rounded-2xl shadow-xl flex items-center justify-between transition border-2 border-amber-300">
+            <!-- META DEL REGALO DE PAPÁ -->
+            <button onclick="abrirPremioFinal()" class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-400 hover:to-pink-500 text-slate-950 font-black py-2.5 px-4 rounded-2xl shadow-xl flex items-center justify-between transition border-2 border-amber-300">
                 <div class="flex items-center gap-2">
-                    <span class="text-2xl">🎁</span>
+                    <span class="text-xl">🎁</span>
                     <div class="text-left">
-                        <span class="text-[10px] uppercase font-extrabold block text-slate-950">Meta del Regalo de Papá</span>
+                        <span class="text-[9px] uppercase font-extrabold block text-slate-950">Meta del Regalo de Papá</span>
                         <span id="estado-meta-texto" class="text-xs font-black text-white">¡Revisa cuánto te falta!</span>
                     </div>
                 </div>
-                <span class="text-xs bg-white text-slate-950 px-3 py-1.5 rounded-xl font-black shadow">Ver 🌟</span>
+                <span class="text-xs bg-white text-slate-950 px-3 py-1 rounded-xl font-black shadow">Ver 🌟</span>
             </button>
 
             <div id="panel-dev-mapa" style="display: none;" class="bg-amber-950/80 border border-amber-400/60 p-2.5 rounded-2xl flex flex-wrap justify-between items-center gap-2">
@@ -158,7 +175,7 @@
 
             <p id="subtitulo-mapa-mundo" class="text-xs text-slate-300">Supera cada aula con al menos 70% de aciertos para avanzar:</p>
 
-            <div id="lista-aulas-container" class="space-y-3 max-h-[50vh] overflow-y-auto pr-1 pt-1"></div>
+            <div id="lista-aulas-container" class="space-y-3 max-h-[44vh] overflow-y-auto pr-1 pt-1"></div>
         </section>
 
         <!-- 4. ANIMACIÓN DE ENTRADA AL AULA -->
@@ -171,7 +188,7 @@
             </div>
         </section>
 
-        <!-- 5. PANTALLA DE JUEGO (Con Escenario Vivo de la Mascota a un lado) -->
+        <!-- 5. PANTALLA DE JUEGO -->
         <section id="pantalla-juego" style="display: none;" class="bg-slate-900/95 border border-indigo-500/40 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-4">
             <div class="flex justify-between items-center">
                 <button onclick="volverAlMapa()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-full font-bold text-slate-300 shadow">⬅️ Aulas</button>
@@ -186,27 +203,18 @@
                 <div id="barra-exp" class="bg-gradient-to-r from-pink-500 via-purple-500 to-emerald-400 h-full transition-all duration-500" style="width: 0%;"></div>
             </div>
 
-            <!-- ZONA DE MASCOTA VIVA Y RETO JUNTOS -->
             <div class="flex gap-3 items-stretch py-1">
-                
-                <!-- ESCENARIO MÁGICO DE LA MASCOTA -->
                 <div class="w-[31%] flex flex-col items-center justify-between bg-gradient-to-b from-sky-950 via-indigo-950 to-emerald-950 border-2 border-emerald-400/50 rounded-2xl p-2 shadow-inner relative overflow-hidden">
-                    <!-- Globito de diálogo de la mascota -->
                     <div id="mascota-globo" class="bg-white text-slate-900 text-[10px] font-black px-2 py-1.5 rounded-xl shadow-md text-center leading-tight w-full relative z-10">
                         ¡Tú puedes, Itzel!
                     </div>
-
-                    <!-- Personaje animado -->
                     <div id="mascota-avatar-juego" class="w-24 h-24 sm:w-28 sm:h-28 my-auto flex items-center justify-center z-10"></div>
-
-                    <!-- Pastito mágico y etapa -->
                     <div class="w-full text-center z-10">
                         <div class="h-2 w-full bg-emerald-500/40 rounded-full mb-1"></div>
                         <span id="mascota-etapa-tag" class="text-[9px] font-extrabold text-emerald-300 uppercase tracking-tight block">Bebé Tierno</span>
                     </div>
                 </div>
 
-                <!-- TARJETA DEL RETO -->
                 <div id="game-card" class="w-[69%] space-y-3">
                     <div id="escena-caja" class="escena-visual bg-gradient-to-br from-indigo-950/90 to-slate-900 border border-indigo-500/30 rounded-2xl p-3 text-center shadow">
                         <div id="escena-dibujo" class="text-2xl sm:text-3xl tracking-wider leading-relaxed select-none">🍎🍎 ➕ 🍎</div>
@@ -295,30 +303,30 @@
     </footer>
 
     <!-- Archivos de Grados e Inglés -->
-    <script src="datos/grado1.js?v=10"></script>
-    <script src="datos/grado2.js?v=10"></script>
-    <script src="datos/grado3.js?v=10"></script>
-    <script src="datos/grado4.js?v=10"></script>
-    <script src="datos/grado5.js?v=10"></script>
-    <script src="datos/grado6.js?v=10"></script>
-    <script src="datos/sec1.js?v=10"></script>
-    <script src="datos/sec2.js?v=10"></script>
-    <script src="datos/sec3.js?v=10"></script>
-    <script src="datos/sec4.js?v=10"></script>
-    <script src="datos/sec5.js?v=10"></script>
+    <script src="datos/grado1.js?v=11"></script>
+    <script src="datos/grado2.js?v=11"></script>
+    <script src="datos/grado3.js?v=11"></script>
+    <script src="datos/grado4.js?v=11"></script>
+    <script src="datos/grado5.js?v=11"></script>
+    <script src="datos/grado6.js?v=11"></script>
+    <script src="datos/sec1.js?v=11"></script>
+    <script src="datos/sec2.js?v=11"></script>
+    <script src="datos/sec3.js?v=11"></script>
+    <script src="datos/sec4.js?v=11"></script>
+    <script src="datos/sec5.js?v=11"></script>
 
-    <script src="ingles/nivel1.js?v=10"></script>
-    <script src="ingles/nivel2.js?v=10"></script>
-    <script src="ingles/nivel3.js?v=10"></script>
-    <script src="ingles/nivel4.js?v=10"></script>
-    <script src="ingles/nivel5.js?v=10"></script>
-    <script src="ingles/nivel6.js?v=10"></script>
-    <script src="ingles/nivel7.js?v=10"></script>
-    <script src="ingles/nivel8.js?v=10"></script>
+    <script src="ingles/nivel1.js?v=11"></script>
+    <script src="ingles/nivel2.js?v=11"></script>
+    <script src="ingles/nivel3.js?v=11"></script>
+    <script src="ingles/nivel4.js?v=11"></script>
+    <script src="ingles/nivel5.js?v=11"></script>
+    <script src="ingles/nivel6.js?v=11"></script>
+    <script src="ingles/nivel7.js?v=11"></script>
+    <script src="ingles/nivel8.js?v=11"></script>
 
-    <!-- Motor de Mascotas Vivas, Tiendita y App -->
-    <script src="js/mascotas.js?v=10"></script>
-    <script src="js/tiendita.js?v=10"></script>
-    <script src="js/app.js?v=10"></script>
+    <!-- Motor de Mascotas, Reforzamiento y App -->
+    <script src="js/mascotas.js?v=11"></script>
+    <script src="js/reforzamiento.js?v=11"></script>
+    <script src="js/app.js?v=11"></script>
 </body>
 </html>
