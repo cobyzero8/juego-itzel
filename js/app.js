@@ -1,10 +1,11 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO V7 (Mascota Evolutiva + Minijuego Tiendita)
+   MOTOR PEDAGÓGICO V8 (Orden Correcto + Mascota Fija + Tiendita)
    ============================================================ */
 
 let modoProgramadorActivo = false;
 let mundoActivo = 'mate'; // 'mate' | 'ingles'
 
+// Catálogos en orden correcto (De Nivel 1 a Nivel Máximo)
 const CATALOGO_MATE = [
     { num: 1, titulo: "Aula 1: 1.º de Primaria", subtitulo: "Bases Visuales", icono: "⭐", varDatos: () => (typeof nivel1_Grado1 !== 'undefined') ? nivel1_Grado1 : null },
     { num: 2, titulo: "Aula 2: 2.º de Primaria", subtitulo: "Agilidad Mental", icono: "🌲", varDatos: () => (typeof nivel2_Grado2 !== 'undefined') ? nivel2_Grado2 : null },
@@ -39,7 +40,7 @@ const EVOLUCION_MASCOTAS = {
 };
 
 let estadoJuego = {
-    mascota: null, // Guardará: 'perrito', 'gatito', etc.
+    mascota: 'perrito', // Mascota por defecto
     xp: 0,
     monedas: 0,
     nivelMaxDesbloqueado: 1,
@@ -196,11 +197,11 @@ function confirmarMascota() {
 }
 
 function obtenerIconoMascota() {
-    if (!estadoJuego.mascota) return '🥚';
+    if (!estadoJuego.mascota) return '🐶'; // Perro por defecto
     const xp = estadoJuego.xp || 0;
     const raza = EVOLUCION_MASCOTAS[estadoJuego.mascota];
+    if (!raza) return '🐶';
     
-    // Evoluciona a Joven a los 300 XP, Adulto a los 1000 XP
     if (xp < 300) return raza.lvl1;       
     else if (xp < 1000) return raza.lvl2; 
     else return raza.lvl3;                
@@ -316,12 +317,7 @@ function mostrarPantalla(idPantalla) {
 function entrarDesdePortada() {
     reproducirSonido('entrada');
     try { if (typeof confetti === 'function') confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } }); } catch (e) {}
-    // Si no tiene mascota, lo mandamos al centro de adopción primero
-    if (!estadoJuego.mascota) {
-        mostrarPantalla('pantalla-mascota');
-    } else {
-        mostrarPantalla('pantalla-mapa');
-    }
+    mostrarPantalla('pantalla-mapa');
     actualizarHeader();
     actualizarMapaVisual();
 }
@@ -341,17 +337,13 @@ function actualizarHeader() {
     const mascotaIcon = document.getElementById('header-mascota-icon');
     
     if (estadoJuego.mascota) {
-        mascotaBox.style.display = 'flex';
-        mascotaIcon.textContent = obtenerIconoMascota();
-    } else {
-        mascotaBox.style.display = 'none';
+        if(mascotaBox) mascotaBox.style.display = 'flex';
+        if(mascotaIcon) mascotaIcon.textContent = obtenerIconoMascota();
     }
 }
 
 function actualizarMapaVisual() {
-    if (document.getElementById('nivel-titulo')) {
-        document.getElementById('nivel-titulo').textContent = (mundoActivo === 'ingles') ? "🇺🇸 Academia de Inglés" : "🏫 Mate y Lectura";
-    }
+    if (document.getElementById('nivel-titulo')) document.getElementById('nivel-titulo').textContent = (mundoActivo === 'ingles') ? "🇺🇸 Academia de Inglés" : "🏫 Mate y Lectura";
     
     const prog = calcularProgresoTotal();
     const textoMeta = document.getElementById('estado-meta-texto');
@@ -367,7 +359,7 @@ function actualizarMapaVisual() {
     const maxDesb = (mundoActivo === 'ingles') ? (estadoJuego.inglesMaxDesbloqueado || 1) : (estadoJuego.nivelMaxDesbloqueado || 1);
     const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
 
-    // AQUÍ ESTÁ EL CAMBIO: Ahora recorre el catálogo de frente (del 1 al 11) sin el reverse()
+    // EL BUCLE AHORA CORRE NORMAL (De Nivel 1 hacia Abajo) - Sin reverse()
     catalogo.forEach(aula => {
         let d = null;
         try { d = aula.varDatos(); } catch (e) {}
@@ -382,24 +374,24 @@ function actualizarMapaVisual() {
 
         if (desbloqueado && tiene) {
             if (p.completado) {
-                div.className = "cursor-pointer bg-gradient-to-r from-emerald-700 to-teal-700 p-3.5 rounded-2xl border-2 border-emerald-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+                div.className = "cursor-pointer bg-gradient-to-r from-emerald-700 to-teal-700 p-3.5 rounded-2xl border-2 border-emerald-300/80 flex justify-between items-center shadow-lg transform active:scale-95 transition mb-3";
                 div.innerHTML = `<div class="flex items-center gap-3"><span class="text-2xl">✅</span><div class="text-left"><h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3><p class="text-[10px] text-emerald-100">Logrado: ${p.mejorNota}/${p.mejorTotal} aciertos</p></div></div><span class="text-[10px] bg-emerald-950/70 text-emerald-200 px-3 py-1.5 rounded-full font-extrabold">Repasar 🔄</span>`;
             } else if (p.mejorNota !== null && p.indice === 0) {
-                div.className = "cursor-pointer bg-gradient-to-r from-amber-600 to-orange-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+                div.className = "cursor-pointer bg-gradient-to-r from-amber-600 to-orange-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition mb-3";
                 div.innerHTML = `<div class="flex items-center gap-3"><span class="text-2xl">💪</span><div class="text-left"><h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3><p class="text-[10px] text-amber-100">Inténtalo otra vez</p></div></div><span class="text-[10px] bg-white text-orange-950 px-3 py-1.5 rounded-full font-extrabold shadow">Reintentar</span>`;
             } else if (p.indice > 0) {
-                div.className = "cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition";
+                div.className = "cursor-pointer bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-3.5 rounded-2xl border-2 border-amber-300 flex justify-between items-center shadow-lg transform active:scale-95 transition mb-3";
                 div.innerHTML = `<div class="flex items-center gap-3"><span class="text-2xl">${aula.icono}</span><div class="text-left"><h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3><p class="text-[10px] text-amber-200">⏳ Reto ${p.indice + 1} de ${total}</p></div></div><span class="text-[10px] bg-amber-400 text-slate-950 px-3 py-1.5 rounded-full font-extrabold shadow">Seguir ▶️</span>`;
             } else {
                 const gr = mundoActivo === 'ingles' ? "from-sky-600 via-blue-600 to-indigo-700 border-sky-300/80" : "from-pink-600 via-purple-600 to-indigo-600 border-pink-300/80";
-                div.className = `cursor-pointer bg-gradient-to-r ${gr} p-3.5 rounded-2xl border-2 flex justify-between items-center shadow-lg transform active:scale-95 transition`;
+                div.className = `cursor-pointer bg-gradient-to-r ${gr} p-3.5 rounded-2xl border-2 flex justify-between items-center shadow-lg transform active:scale-95 transition mb-3`;
                 div.innerHTML = `<div class="flex items-center gap-3"><span class="text-2xl">${aula.icono}</span><div class="text-left"><h3 class="font-extrabold text-sm text-white">${aula.titulo}</h3><p class="text-[10px] text-sky-100">${aula.subtitulo}</p></div></div><span class="text-[10px] bg-white text-indigo-950 px-3 py-1.5 rounded-full font-extrabold shadow">¡ENTRAR!</span>`;
             }
         } else if (!tiene) {
-            div.className = "opacity-40 bg-slate-800/60 p-3 rounded-2xl border border-slate-700/70 flex justify-between items-center cursor-not-allowed";
+            div.className = "opacity-40 bg-slate-800/60 p-3 rounded-2xl border border-slate-700/70 flex justify-between items-center cursor-not-allowed mb-3";
             div.innerHTML = `<div class="flex items-center gap-3"><span class="text-xl">${aula.icono}</span><div class="text-left"><h3 class="font-bold text-xs text-slate-400">${aula.titulo}</h3></div></div><span class="text-[9px] bg-slate-800 px-2 py-1 rounded-full text-slate-500 font-bold">Pronto</span>`;
         } else {
-            div.className = "opacity-60 bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed";
+            div.className = "opacity-60 bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center cursor-not-allowed mb-3";
             div.innerHTML = `<div class="flex items-center gap-3"><span class="text-2xl">${aula.icono}</span><div class="text-left"><h3 class="font-extrabold text-sm text-slate-300">${aula.titulo}</h3></div></div><span class="text-[10px] bg-slate-700 px-3 py-1 rounded-full font-bold">🔒</span>`;
         }
         contenedor.appendChild(div);
@@ -531,9 +523,11 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         card.classList.add('anim-acierto');
         
         // ¡La mascota se pone feliz!
-        mascotaImg.classList.add('scale-125', 'bounce');
-        mascotaMsj.textContent = "¡Súper!";
-        mascotaMsj.className = "text-[10px] font-black text-emerald-400 mt-2 text-center";
+        if (mascotaImg) mascotaImg.classList.add('scale-125', 'bounce');
+        if (mascotaMsj) {
+            mascotaMsj.textContent = "¡Súper!";
+            mascotaMsj.className = "text-[10px] font-black text-emerald-400 mt-2 text-center";
+        }
 
         rachaActual++; prog.aciertos++; estadisticasSesion[area].ok++;
         estadoJuego.xp += 30; estadoJuego.monedas += 5;
@@ -548,7 +542,7 @@ function evaluarRespuesta(seleccion, q, btnElem) {
 
         setTimeout(() => {
             card.classList.remove('anim-acierto');
-            mascotaImg.classList.remove('scale-125', 'bounce');
+            if(mascotaImg) mascotaImg.classList.remove('scale-125', 'bounce');
             cargarPreguntaActual();
         }, 1400);
 
@@ -559,8 +553,10 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         card.classList.add('anim-error');
 
         // Mascota anima cuando se equivoca
-        mascotaMsj.textContent = "¡Ánimo!";
-        mascotaMsj.className = "text-[10px] font-black text-rose-300 mt-2 text-center";
+        if (mascotaMsj) {
+            mascotaMsj.textContent = "¡Ánimo!";
+            mascotaMsj.className = "text-[10px] font-black text-rose-300 mt-2 text-center";
+        }
 
         rachaActual = 0;
         fb.className = "rounded-2xl p-3 text-left font-bold text-[11px] leading-relaxed border-2 bg-rose-950/90 border-amber-400/70 text-rose-100 space-y-2 shadow-xl mt-2";
@@ -627,11 +623,9 @@ function finalizarBloqueNivel() {
         // ¡MAGIA! Ocultamos el juego y abrimos el MINIJUEGO realista de La Tiendita antes de la boleta
         document.getElementById('pantalla-juego').style.display = 'none';
         
-        // Esta función viene del archivo tiendita.js
         if (typeof iniciarMinijuegoTiendita === 'function') {
             iniciarMinijuegoTiendita();
         } else {
-            // Fallback por si acaso
             mostrarPantalla('pantalla-victoria');
         }
     } else {
@@ -659,6 +653,12 @@ function cargarEstado() {
             if (!estadoJuego.progresoIngles) estadoJuego.progresoIngles = {};
         }
     } catch (e) { localStorage.removeItem('itzel_mundo_v7'); }
+    
+    // Si no tiene mascota guardada de versiones anteriores, asigna una por defecto
+    if (!estadoJuego.mascota) {
+        estadoJuego.mascota = 'perrito';
+    }
+
     if (sessionStorage.getItem('itzel_dev_auth') === 'true') modoProgramadorActivo = true;
     aplicarConfiguracionDev();
     mostrarPantalla('pantalla-portada');
