@@ -349,7 +349,9 @@ function actualizarHeader() {
 }
 
 function actualizarMapaVisual() {
-    if (document.getElementById('nivel-titulo')) document.getElementById('nivel-titulo').textContent = (mundoActivo === 'ingles') ? "🇺🇸 Academia de Inglés" : "🏫 Mate y Lectura";
+    if (document.getElementById('nivel-titulo')) {
+        document.getElementById('nivel-titulo').textContent = (mundoActivo === 'ingles') ? "🇺🇸 Academia de Inglés" : "🏫 Mate y Lectura";
+    }
     
     const prog = calcularProgresoTotal();
     const textoMeta = document.getElementById('estado-meta-texto');
@@ -365,7 +367,8 @@ function actualizarMapaVisual() {
     const maxDesb = (mundoActivo === 'ingles') ? (estadoJuego.inglesMaxDesbloqueado || 1) : (estadoJuego.nivelMaxDesbloqueado || 1);
     const mapaProgreso = (mundoActivo === 'ingles') ? estadoJuego.progresoIngles : estadoJuego.progresoNiveles;
 
-    [...catalogo].reverse().forEach(aula => {
+    // AQUÍ ESTÁ EL CAMBIO: Ahora recorre el catálogo de frente (del 1 al 11) sin el reverse()
+    catalogo.forEach(aula => {
         let d = null;
         try { d = aula.varDatos(); } catch (e) {}
         const desbloqueado = maxDesb >= aula.num;
