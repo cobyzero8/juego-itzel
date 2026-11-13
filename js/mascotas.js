@@ -1,7 +1,6 @@
 /* ============================================================
-   SISTEMA DE MASCOTAS ANIMADAS EVOLUTIVAS (js/mascotas.js)
-   Personajes ilustrados con respiración, parpadeo, emociones
-   y 3 etapas reales de crecimiento (Bebé -> Joven -> Guardián)
+   SISTEMA DE MASCOTAS ANIMADAS EVOLUTIVAS + ACCESORIOS
+   Archivo: js/mascotas.js
    ============================================================ */
 
 const DATOS_MASCOTAS = {
@@ -27,7 +26,6 @@ const DATOS_MASCOTAS = {
     }
 };
 
-// Inyecta estilos de animación y degradados 3D una sola vez al cargar
 function inicializarMotorMascotas() {
     if (document.getElementById('estilos-mascotas-vivas')) return;
 
@@ -70,7 +68,6 @@ function inicializarMotorMascotas() {
     `;
     document.head.appendChild(style);
 
-    // Degradados compartidos para darle volumen 3D tipo dibujo animado
     const svgDefs = `
     <svg width="0" height="0" style="position:absolute; pointer-events:none;">
         <defs>
@@ -103,21 +100,19 @@ function inicializarMotorMascotas() {
     document.body.insertAdjacentHTML('beforeend', svgDefs);
 }
 
-// Calcula la etapa de crecimiento real según XP (1: Bebé, 2: Aventurero, 3: Guardián Real)
 function obtenerEtapaMascota(xp = 0) {
     if (xp >= 1000) return { nivel: 3, nombre: "Guardián Real 👑", escala: 1.05 };
     if (xp >= 300)  return { nivel: 2, nombre: "Aventurero ⭐", escala: 0.96 };
     return { nivel: 1, nombre: "Bebé Tierno 🍼", escala: 0.86 };
 }
 
-// Genera el dibujo animado completo del personaje con su expresión y accesorios de evolución
-function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = false) {
+function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = false, accesorios = []) {
     inicializarMotorMascotas();
     const especie = DATOS_MASCOTAS[tipo] ? tipo : 'gatito';
     const etapa = obtenerEtapaMascota(xp);
     const animClase = estado === 'happy' ? 'anim-mascota-happy' : (estado === 'sad' ? 'anim-mascota-sad' : 'anim-mascota-idle');
+    const eq = Array.isArray(accesorios) ? accesorios : [];
 
-    // Colores según especie
     const paleta = {
         gatito:    { piel: 'url(#grad-gato-azul)',   orejaIn: '#f472b6', nariz: '#ec4899', barriga: '#e0f2fe' },
         perrito:   { piel: 'url(#grad-perro-dorado)', orejaIn: '#78350f', nariz: '#451a03', barriga: '#fef3c7' },
@@ -125,13 +120,13 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
         unicornio: { piel: 'url(#grad-unicornio)',    orejaIn: '#e879f9', nariz: '#d946ef', barriga: '#fae8ff' }
     }[especie];
 
-    // Ojos según emoción (idle = ojos grandes brillantes, happy = arcos felices ^ ^, sad = ojitos tiernos de ánimo)
+    // Ojos según emoción
     let ojosSVG = '';
     if (estado === 'happy') {
         ojosSVG = `
             <path d="M 38 52 Q 45 43 52 52" fill="none" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/>
             <path d="M 68 52 Q 75 43 82 52" fill="none" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/>
-            <text x="28" y="42" font-size="11">✨</text>
+            <text x="26" y="42" font-size="11">✨</text>
             <text x="84" y="42" font-size="11">✨</text>
         `;
     } else if (estado === 'sad') {
@@ -158,7 +153,17 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
         `;
     }
 
-    // Boca según emoción
+    // Accesorio: Lentes Geniales
+    const lentesSVG = eq.includes('lentes') ? `
+        <g>
+            <rect x="33" y="44" width="23" height="15" rx="5" fill="#0f172a" stroke="#facc15" stroke-width="2"/>
+            <rect x="64" y="44" width="23" height="15" rx="5" fill="#0f172a" stroke="#facc15" stroke-width="2"/>
+            <line x1="56" y1="50" x2="64" y2="50" stroke="#facc15" stroke-width="2.5"/>
+            <line x1="37" y1="47" x2="43" y2="54" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="68" y1="47" x2="74" y2="54" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round"/>
+        </g>` : '';
+
+    // Boca
     let bocaSVG = '';
     if (estado === 'happy') {
         bocaSVG = `<path d="M 52 64 Q 60 76 68 64 Z" fill="#fb7185" stroke="#1e293b" stroke-width="2"/>`;
@@ -168,7 +173,7 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
         bocaSVG = `<path d="M 53 64 Q 56.5 68 60 64 Q 63.5 68 67 64" fill="none" stroke="#1e293b" stroke-width="2.3" stroke-linecap="round"/>`;
     }
 
-    // Orejas y detalles superiores según especie
+    // Orejas
     let orejasSVG = '';
     if (especie === 'gatito') {
         orejasSVG = `
@@ -176,7 +181,6 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
             <polygon points="28,34 26,18 41,27" fill="${paleta.orejaIn}"/>
             <polygon points="94,38 98,12 74,26" fill="${paleta.piel}" stroke="#0284c7" stroke-width="1.5"/>
             <polygon points="92,34 94,18 79,27" fill="${paleta.orejaIn}"/>
-            <!-- Antenitas mágicas como el gatito azul -->
             <path d="M 53 23 Q 48 10 43 9" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
             <circle cx="43" cy="9" r="3.5" fill="#7dd3fc"/>
             <path d="M 67 23 Q 72 10 77 9" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
@@ -204,33 +208,48 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
         orejasSVG = `
             <polygon points="30,36 26,15 46,26" fill="${paleta.piel}"/>
             <polygon points="90,36 94,15 74,26" fill="${paleta.piel}"/>
-            <!-- Cuerno dorado espiral -->
             <polygon points="54,24 60,3 66,24" fill="url(#grad-corona)" stroke="#ca8a04" stroke-width="1"/>
             <path d="M 55 18 L 65 15 M 57 12 L 63 10" stroke="#fef9c3" stroke-width="1.5"/>
         `;
     }
 
-    // Corona de Guardián Real en Etapa 3 (1000+ XP)
-    const coronaSVG = (etapa.nivel >= 3 && especie !== 'unicornio')
-        ? `<polygon points="46,22 50,10 60,17 70,10 74,22" fill="url(#grad-corona)" stroke="#b45309" stroke-width="1.2"/>`
-        : '';
+    // Accesorio: Sombrero Mágico o Corona Real
+    let cabezaTopSVG = '';
+    if (eq.includes('sombrero')) {
+        cabezaTopSVG = `
+            <g>
+                <ellipse cx="60" cy="24" rx="26" ry="6" fill="#581c87" stroke="#c084fc" stroke-width="1.5"/>
+                <polygon points="42,24 60,1 78,24" fill="#6b21a8" stroke="#c084fc" stroke-width="1.5"/>
+                <text x="55" y="18" font-size="9">⭐</text>
+            </g>`;
+    } else if (etapa.nivel >= 3 && especie !== 'unicornio') {
+        cabezaTopSVG = `<polygon points="46,22 50,10 60,17 70,10 74,22" fill="url(#grad-corona)" stroke="#b45309" stroke-width="1.2"/>`;
+    }
 
-    // Si solo se pide la carita (para la cabecera superior)
+    // Accesorio: Moño Estelar
+    const monoSVG = eq.includes('mono') ? `
+        <g transform="translate(82, 26) rotate(20)">
+            <polygon points="0,0 -10,-7 -10,7" fill="#ec4899" stroke="#fbcfe8" stroke-width="1"/>
+            <polygon points="0,0 10,-7 10,7" fill="#ec4899" stroke="#fbcfe8" stroke-width="1"/>
+            <circle cx="0" cy="0" r="3.5" fill="#fef08a"/>
+        </g>` : '';
+
     if (soloCara) {
         return `
         <svg viewBox="0 0 120 95" class="w-full h-full overflow-visible">
             ${orejasSVG}
-            ${coronaSVG}
             <ellipse cx="60" cy="52" rx="36" ry="30" fill="${paleta.piel}"/>
+            ${cabezaTopSVG}
+            ${monoSVG}
             <circle cx="34" cy="60" r="5.5" fill="#fb7185" opacity="0.55"/>
             <circle cx="86" cy="60" r="5.5" fill="#fb7185" opacity="0.55"/>
             ${ojosSVG}
+            ${lentesSVG}
             <ellipse cx="60" cy="59" rx="4" ry="2.8" fill="${paleta.nariz}"/>
             ${bocaSVG}
         </svg>`;
     }
 
-    // Capa de héroe (Etapa 3) y Collar/Pañuelo (Etapas 1 y 2)
     const capaHeroeSVG = etapa.nivel >= 3
         ? `<path d="M 34 80 L 22 114 L 98 114 L 86 80 Z" fill="#e11d48" stroke="#fda4af" stroke-width="1.5"/>`
         : '';
@@ -240,7 +259,13 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
         : `<path d="M 41 78 Q 60 86 79 78" fill="none" stroke="#facc15" stroke-width="4" stroke-linecap="round"/>
            <circle cx="60" cy="85" r="4.5" fill="#fef08a" stroke="#ca8a04" stroke-width="1"/>`;
 
-    // Partículas de corazones cuando acierta
+    // Accesorio: Escudo de Héroe
+    const escudoSVG = eq.includes('escudo') ? `
+        <g transform="translate(15, 78)">
+            <path d="M 0 0 L 22 0 L 22 16 Q 11 28 0 16 Z" fill="#2563eb" stroke="#facc15" stroke-width="2.5"/>
+            <text x="11" y="15" text-anchor="middle" font-size="10">⭐</text>
+        </g>` : '';
+
     const particulasFelices = estado === 'happy' ? `
         <text x="10" y="35" font-size="14" class="particula-amor">💖</text>
         <text x="95" y="30" font-size="14" class="particula-amor" style="animation-delay:0.3s;">⭐</text>
@@ -249,24 +274,20 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
     return `
     <svg viewBox="0 0 120 125" class="w-full h-full overflow-visible ${animClase}">
         ${particulasFelices}
-        <!-- Colita animada -->
         <path d="M 78 96 Q 104 84 100 68" fill="none" stroke="${especie === 'gatito' ? '#0284c7' : (especie === 'perrito' ? '#d97706' : '#e879f9')}" stroke-width="7" stroke-linecap="round" class="mascota-cola-mov"/>
         ${capaHeroeSVG}
-        <!-- Cuerpo -->
         <ellipse cx="60" cy="96" rx="${22 * etapa.escala}" ry="${20 * etapa.escala}" fill="${paleta.piel}"/>
         <ellipse cx="60" cy="98" rx="${13 * etapa.escala}" ry="${13 * etapa.escala}" fill="${paleta.barriga}"/>
-        <!-- Patitas -->
         <ellipse cx="47" cy="113" rx="8" ry="5.5" fill="${paleta.piel}"/>
         <ellipse cx="73" cy="113" rx="8" ry="5.5" fill="${paleta.piel}"/>
         ${accesorioCuelloSVG}
-        <!-- Cabeza -->
+        ${escudoSVG}
         ${orejasSVG}
-        ${coronaSVG}
         <ellipse cx="60" cy="52" rx="35" ry="29" fill="${paleta.piel}"/>
-        <!-- Mejillas sonrojadas -->
+        ${cabezaTopSVG}
+        ${monoSVG}
         <circle cx="34" cy="60" r="5.5" fill="#fb7185" opacity="0.55"/>
         <circle cx="86" cy="60" r="5.5" fill="#fb7185" opacity="0.55"/>
-        <!-- Bigotitos si es gatito -->
         ${especie === 'gatito' ? `
             <line x1="20" y1="56" x2="31" y2="58" stroke="#0369a1" stroke-width="1.5" stroke-linecap="round"/>
             <line x1="20" y1="62" x2="31" y2="62" stroke="#0369a1" stroke-width="1.5" stroke-linecap="round"/>
@@ -274,7 +295,7 @@ function generarSVGMascota(tipo = 'gatito', estado = 'idle', xp = 0, soloCara = 
             <line x1="100" y1="62" x2="89" y2="62" stroke="#0369a1" stroke-width="1.5" stroke-linecap="round"/>
         ` : ''}
         ${ojosSVG}
-        <!-- Naricita y boca -->
+        ${lentesSVG}
         <ellipse cx="60" cy="59" rx="4" ry="2.8" fill="${paleta.nariz}"/>
         ${bocaSVG}
     </svg>`;
