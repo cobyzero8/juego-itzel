@@ -1,5 +1,5 @@
 /* ============================================================
-   MOTOR PEDAGÓGICO V9 (Flujo Portada -> Mascota Animada -> Aulas)
+   MOTOR PEDAGÓGICO V10 (Mascota Animada Viva + Orden 1..11)
    ============================================================ */
 
 let modoProgramadorActivo = false;
@@ -30,27 +30,8 @@ const CATALOGO_INGLES = [
     { num: 8, titulo: "Level 8: Mastery Pro C2", subtitulo: "Cima y Fluidez Total", icono: "👑", varDatos: () => (typeof inglesNivel8 !== 'undefined') ? inglesNivel8 : null }
 ];
 
-const EVOLUCION_MASCOTAS = {
-    'perrito': {
-        lvl1: '🐾', lvl2: '🐶', lvl3: '🐕',
-        saludo: "🐶 ¡Guau, guau! ¡Hola Itzel! Seré tu cachorrito fiel y aprenderemos juntos."
-    },
-    'gatito': {
-        lvl1: '🍼', lvl2: '🐱', lvl3: '🐈',
-        saludo: "🐱 ¡Miau! ¡Hola Itzel! Me encanta estudiar contigo, ¡vamos por muchas estrellas!"
-    },
-    'conejito': {
-        lvl1: '🥕', lvl2: '🐰', lvl3: '🐇',
-        saludo: "🐰 ¡Hola Itzel! Saltaremos de alegría con cada respuesta correcta. ¡Tú puedes!"
-    },
-    'unicornio': {
-        lvl1: '🥚', lvl2: '🦄', lvl3: '🎠',
-        saludo: "🦄 ¡Hola Itzel! Con mi magia y tu inteligencia llegaremos hasta el regalo de papá."
-    }
-};
-
 let estadoJuego = {
-    mascota: null,
+    mascota: 'gatito',
     xp: 0,
     monedas: 0,
     nivelMaxDesbloqueado: 1,
@@ -195,16 +176,23 @@ function practicarVozIngles() {
     recognition.start();
 }
 
-// --- 2. SISTEMA DE MASCOTA VIRTUAL (PANTALLA 2 ANIMADA) ---
+// --- 2. SISTEMA DE MASCOTA VIVA (PANTALLA 2 Y ESCENARIO DE JUEGO) ---
 function abrirSelectorMascota() {
     mostrarPantalla('pantalla-mascota');
     actualizarHeader();
 
-    if (estadoJuego.mascota && EVOLUCION_MASCOTAS[estadoJuego.mascota]) {
-        const cardPrevia = document.getElementById(`card-mascota-${estadoJuego.mascota}`);
-        if (cardPrevia) {
-            seleccionarMascota(estadoJuego.mascota, cardPrevia, false);
+    // Dibuja los 4 personajes animados en sus tarjetas de adopción
+    ['gatito', 'perrito', 'conejito', 'unicornio'].forEach(tipo => {
+        const box = document.getElementById(`preview-mascota-${tipo}`);
+        if (box && typeof generarSVGMascota === 'function') {
+            box.innerHTML = generarSVGMascota(tipo, 'idle', estadoJuego.xp || 0, false);
         }
+    });
+
+    const actual = DATOS_MASCOTAS[estadoJuego.mascota] ? estadoJuego.mascota : 'gatito';
+    const cardPrevia = document.getElementById(`card-mascota-${actual}`);
+    if (cardPrevia) {
+        seleccionarMascota(actual, cardPrevia, false);
     }
 }
 
@@ -214,19 +202,25 @@ function seleccionarMascota(tipo, elemento, conVoz = true) {
     reproducirSonido('acierto');
     actualizarHeader();
 
-    document.querySelectorAll('.mascota-card').forEach(c => {
-        c.style.borderColor = '#475569';
-        c.style.backgroundColor = 'rgba(30, 41, 59, 0.9)';
-        c.classList.remove('ring-4', 'ring-emerald-400/50', 'scale-105');
+    // Resetea las 4 tarjetas
+    ['gatito', 'perrito', 'conejito', 'unicornio'].forEach(t => {
+        const c = document.getElementById(`card-mascota-${t}`);
+        const prev = document.getElementById(`preview-mascota-${t}`);
+        if (c) {
+            c.style.borderColor = '#475569';
+            c.classList.remove('ring-4', 'ring-emerald-400/60', 'scale-105');
+        }
+        if (prev && typeof generarSVGMascota === 'function') {
+            prev.innerHTML = generarSVGMascota(t, t === tipo ? 'happy' : 'idle', estadoJuego.xp || 0, false);
+        }
     });
 
     if (elemento) {
         elemento.style.borderColor = '#10b981';
-        elemento.style.backgroundColor = 'rgba(16, 185, 129, 0.22)';
-        elemento.classList.add('ring-4', 'ring-emerald-400/50', 'scale-105');
+        elemento.classList.add('ring-4', 'ring-emerald-400/60', 'scale-105');
     }
 
-    const datosMascota = EVOLUCION_MASCOTAS[tipo];
+    const datosMascota = DATOS_MASCOTAS[tipo];
     const cajaSaludo = document.getElementById('saludo-mascota-elegida');
     if (cajaSaludo && datosMascota) {
         cajaSaludo.style.display = 'block';
@@ -239,7 +233,7 @@ function seleccionarMascota(tipo, elemento, conVoz = true) {
 }
 
 function confirmarMascota() {
-    if (!mascotaSeleccionadaTemporal) return;
+    if (!mascotaSeleccionadaTemporal) mascotaSeleccionadaTemporal = 'gatito';
     estadoJuego.mascota = mascotaSeleccionadaTemporal;
     reproducirSonido('victoria');
     try { if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } }); } catch (e) {}
@@ -247,15 +241,27 @@ function confirmarMascota() {
     volverAlMapa();
 }
 
-function obtenerIconoMascota() {
-    if (!estadoJuego.mascota) return '🥚';
-    const xp = estadoJuego.xp || 0;
-    const raza = EVOLUCION_MASCOTAS[estadoJuego.mascota];
-    if (!raza) return '🐶';
-    
-    if (xp < 300) return raza.lvl1;       
-    else if (xp < 1000) return raza.lvl2; 
-    else return raza.lvl3;                
+function actualizarMascotaEnJuego(emocion = 'idle', frase = "¡Tú puedes, Itzel!") {
+    const escenario = document.getElementById('mascota-avatar-juego');
+    const globo = document.getElementById('mascota-globo');
+    const etapaTag = document.getElementById('mascota-etapa-tag');
+
+    if (escenario && typeof generarSVGMascota === 'function') {
+        escenario.innerHTML = generarSVGMascota(estadoJuego.mascota, emocion, estadoJuego.xp || 0, false);
+    }
+    if (globo) {
+        globo.textContent = frase;
+        if (emocion === 'happy') {
+            globo.className = "bg-emerald-400 text-slate-950 text-[10px] font-black px-2 py-1.5 rounded-xl shadow-md text-center leading-tight w-full relative z-10";
+        } else if (emocion === 'sad') {
+            globo.className = "bg-amber-300 text-slate-950 text-[10px] font-black px-2 py-1.5 rounded-xl shadow-md text-center leading-tight w-full relative z-10";
+        } else {
+            globo.className = "bg-white text-slate-900 text-[10px] font-black px-2 py-1.5 rounded-xl shadow-md text-center leading-tight w-full relative z-10";
+        }
+    }
+    if (etapaTag && typeof obtenerEtapaMascota === 'function') {
+        etapaTag.textContent = obtenerEtapaMascota(estadoJuego.xp || 0).nombre;
+    }
 }
 
 // --- 3. LOGIN PROGRAMADOR ---
@@ -385,12 +391,14 @@ function actualizarHeader() {
     if (document.getElementById('score-display')) document.getElementById('score-display').textContent = `${estadoJuego.xp || 0} XP`;
     if (document.getElementById('monedas-display')) document.getElementById('monedas-display').textContent = `🪙 ${estadoJuego.monedas || 0}`;
 
-    const mascotaBox = document.getElementById('header-mascota-box');
     const mascotaIcon = document.getElementById('header-mascota-icon');
-    
-    if (mascotaBox && mascotaIcon) {
-        mascotaBox.style.display = 'flex';
-        mascotaIcon.textContent = obtenerIconoMascota();
+    const etapaHeader = document.getElementById('etapa-mascota-header');
+
+    if (mascotaIcon && typeof generarSVGMascota === 'function') {
+        mascotaIcon.innerHTML = generarSVGMascota(estadoJuego.mascota, 'idle', estadoJuego.xp || 0, true);
+    }
+    if (etapaHeader && typeof obtenerEtapaMascota === 'function') {
+        etapaHeader.textContent = obtenerEtapaMascota(estadoJuego.xp || 0).nombre;
     }
 }
 
@@ -494,9 +502,7 @@ function cargarPreguntaActual() {
     document.getElementById('caja-pista').style.display = 'none';
     document.getElementById('feedback-box').style.display = 'none';
 
-    document.getElementById('mascota-avatar-juego').textContent = obtenerIconoMascota();
-    document.getElementById('mascota-mensaje-juego').textContent = "¡Tú puedes!";
-    document.getElementById('mascota-mensaje-juego').className = "text-[10px] font-extrabold text-emerald-300 mt-2 text-center leading-tight";
+    actualizarMascotaEnJuego('idle', "¡Tú puedes, Itzel!");
 
     if (idx >= colaPreguntas.length) {
         finalizarBloqueNivel();
@@ -561,9 +567,6 @@ function evaluarRespuesta(seleccion, q, btnElem) {
     const prog = mp[nivelJugando];
     const area = q.area || "General";
 
-    const mascotaImg = document.getElementById('mascota-avatar-juego');
-    const mascotaMsj = document.getElementById('mascota-mensaje-juego');
-
     if (!estadisticasSesion[area]) estadisticasSesion[area] = { total: 0, ok: 0 };
     estadisticasSesion[area].total++;
     fb.style.display = 'block';
@@ -572,15 +575,12 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         reproducirSonido('acierto');
         btnElem.className = "w-full bg-emerald-600 border-2 border-emerald-300 p-3 rounded-xl font-extrabold text-white text-left px-3 text-sm shadow-lg";
         card.classList.add('anim-acierto');
-        
-        if (mascotaImg) mascotaImg.classList.add('scale-125', 'animate-bounce');
-        if (mascotaMsj) {
-            mascotaMsj.textContent = "¡Súper!";
-            mascotaMsj.className = "text-[10px] font-black text-emerald-400 mt-2 text-center";
-        }
 
         rachaActual++; prog.aciertos++; estadisticasSesion[area].ok++;
         estadoJuego.xp += 30; estadoJuego.monedas += 5;
+
+        // La mascota salta feliz con ojos de estrellas y corazones
+        actualizarMascotaEnJuego('happy', rachaActual >= 3 ? `🔥 ¡Racha x${rachaActual}!` : "¡Súper, Itzel! 🌟");
 
         fb.className = "rounded-2xl p-2.5 text-center font-bold text-[11px] leading-relaxed border bg-emerald-950/80 border-emerald-500/50 text-emerald-300 mt-2";
         fb.textContent = rachaActual >= 3 ? `🔥 ¡Racha de ${rachaActual}! +5 🪙` : "🌟 ¡Excelente! +5 🪙";
@@ -592,9 +592,8 @@ function evaluarRespuesta(seleccion, q, btnElem) {
 
         setTimeout(() => {
             card.classList.remove('anim-acierto');
-            if(mascotaImg) mascotaImg.classList.remove('scale-125', 'animate-bounce');
             cargarPreguntaActual();
-        }, 1400);
+        }, 1450);
 
     } else {
         reproducirSonido('error');
@@ -602,10 +601,8 @@ function evaluarRespuesta(seleccion, q, btnElem) {
         document.querySelectorAll('#opciones-container button')[q.correcta].className = "w-full bg-emerald-700 border-2 border-emerald-400 p-3 rounded-xl font-extrabold text-white text-left px-3 text-sm";
         card.classList.add('anim-error');
 
-        if (mascotaMsj) {
-            mascotaMsj.textContent = "¡Ánimo!";
-            mascotaMsj.className = "text-[10px] font-black text-rose-300 mt-2 text-center";
-        }
+        // La mascota baja sus orejitas y la anima con cariño
+        actualizarMascotaEnJuego('sad', "¡No pasa nada, tú puedes! 💪");
 
         rachaActual = 0;
         fb.className = "rounded-2xl p-3 text-left font-bold text-[11px] leading-relaxed border-2 bg-rose-950/90 border-amber-400/70 text-rose-100 space-y-2 shadow-xl mt-2";
@@ -701,6 +698,10 @@ function cargarEstado() {
             if (!estadoJuego.progresoIngles) estadoJuego.progresoIngles = {};
         }
     } catch (e) { localStorage.removeItem('itzel_mundo_v7'); }
+
+    if (!DATOS_MASCOTAS[estadoJuego.mascota]) {
+        estadoJuego.mascota = 'gatito';
+    }
 
     if (sessionStorage.getItem('itzel_dev_auth') === 'true') modoProgramadorActivo = true;
     aplicarConfiguracionDev();
