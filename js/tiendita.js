@@ -6,9 +6,8 @@ let vueltoObjetivo = 0;
 function iniciarMinijuegoTiendita() {
     reproducirSonido('entrada');
     
-    // Generar un reto de compra realista (ej. un jugo y unas galletas)
-    const costoTotal = Math.floor(Math.random() * 8) + 3; // Costo entre S/ 3 y S/ 10
-    const pagoCliente = costoTotal > 5 ? 20 : 10; // Si cuesta más de 5, paga con 20. Si no, con 10.
+    const costoTotal = Math.floor(Math.random() * 8) + 3;
+    const pagoCliente = costoTotal > 5 ? 20 : 10;
     vueltoObjetivo = pagoCliente - costoTotal;
     vueltoAcumulado = 0;
 
@@ -54,7 +53,7 @@ function iniciarMinijuegoTiendita() {
 function agregarVuelto(valor) {
     vueltoAcumulado += valor;
     document.getElementById('vuelto-actual').textContent = vueltoAcumulado;
-    reproducirSonido('acierto'); // Suena a moneda cayendo
+    reproducirSonido('acierto');
 }
 
 function reiniciarVuelto() {
@@ -70,19 +69,18 @@ function entregarVueltoAlCliente() {
         msj.textContent = "¡Vuelto exacto! +20 XP 🌟";
         reproducirSonido('victoria');
         estadoJuego.xp += 20;
-        estadoJuego.monedas += 15; // Ganancia de La Tiendita
+        estadoJuego.monedas += 15;
         
-        // Esperamos 2 segundos de celebración y saltamos a la boleta de victoria
         setTimeout(() => {
             document.getElementById('modal-tiendita').remove();
-            mostrarPantalla('pantalla-victoria'); // Abre la boleta del nivel
+            mostrarPantalla('pantalla-victoria');
             guardarEstado();
             actualizarHeader();
         }, 2200);
     } else {
         reproducirSonido('error');
         msj.className = "text-[11px] font-black h-4 text-rose-400";
-        msj.textContent = `¡Cuidado! El vuelto correcto era S/ ${vueltoObjetivo}. Inténtalo otra vez.`;
+        msj.textContent = `¡Cuidado! El vuelto correcto era S/ ${vueltoObjetivo}. Intenta de nuevo.`;
         reiniciarVuelto();
     }
 }
